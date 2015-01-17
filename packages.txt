@@ -1,0 +1,10 @@
+gir1.2-appindicator3-0.1
+python-blinker
+python-coverage
+python-enum34
+python-gi
+python-mock
+python-nose
+python-paver
+python-xdg
+python-yapsy
