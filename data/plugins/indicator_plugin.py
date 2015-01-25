@@ -22,14 +22,10 @@ class IndicatorPlugin(TomatePlugin):
         ('session_ended', 'status_attention'),
     )
 
-    def activate(self):
-        super(IndicatorPlugin, self).activate()
-
+    def on_activate(self):
         self.status_idle()
 
-    def deactivate(self):
-        super(IndicatorPlugin, self).deactivate()
-
+    def on_deactivate(self):
         self.reset_icon()
 
     @suppress_errors
