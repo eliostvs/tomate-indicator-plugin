@@ -21,11 +21,6 @@ def default():
 
 
 @task
-def install():
-    sh('cat packages.txt | sudo xargs apt-get -y --force-yes install')
-
-
-@task
 def clean():
     sh('pyclean data/plugin')
     sh('pyclean .')
@@ -46,4 +41,4 @@ def docker_build():
 
 @task
 def docker_run():
-    sh('docker run --rm eliostvs/tomate-indicator-plugin')
+    sh('docker run --rm -v $PWD:/code eliostvs/tomate-indicator-plugin')
