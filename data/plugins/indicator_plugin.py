@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
 
-import locale
 import logging
 
-from gi.repository import AppIndicator3
 from tomate.plugin import TomatePlugin
 from tomate.utils import suppress_errors
-
-locale.textdomain('tomate')
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +12,29 @@ class IndicatorPlugin(TomatePlugin):
 
     signals = (
         ('timer_updated', 'update_icon'),
-        ('session_started', 'status_idle'),
-        ('session_interrupted', 'status_idle'),
-        ('sessions_reseted', 'status_idle'),
-        ('session_ended', 'status_attention'),
+        ('session_started', 'default_icon'),
+        ('session_interrupted', 'default_icon'),
+        ('sessions_reseted', 'default_icon'),
+        ('session_ended', 'attention_icon'),
     )
 
     def on_activate(self):
-        self.status_idle()
+        self.idle_icon()
 
     def on_deactivate(self):
-        self.reset_icon()
+        self.default_icon()
 
     @suppress_errors
-    def reset_icon(self):
+    def default_icon(self, *args, **kwargs):
         self.view.indicator.set_icon('tomate-indicator')
 
+        logger.debug('set default icon')
+
     @suppress_errors
-    def status_idle(self, sender=None, **kwargs):
+    def idle_icon(self, *args, **kwargs):
         self.view.indicator.set_icon('tomate-idle')
-        self.view.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+
+        logger.debug('set idle icon')
 
     @suppress_errors
     def update_icon(self, sender=None, **kwargs):
@@ -52,6 +51,7 @@ class IndicatorPlugin(TomatePlugin):
             logger.debug('Update indicator icon %s', icon_name)
 
     @suppress_errors
-    def status_attention(self, sender=None, **kwargs):
-        self.view.indicator.set_attention_icon('tomate-attention')
-        self.view.indicator.set_status(AppIndicator3.IndicatorStatus.ATTENTION)
+    def attention_icon(self, *args, **kwargs):
+        self.view.indicator.set_icon('tomate-attention')
+
+        logger.debug('set attention icon')

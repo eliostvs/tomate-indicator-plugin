@@ -22,7 +22,7 @@ Name: %{real_name}-indicator-plugin
 Version: 0.1.0
 Release: 0
 License: GPL-3.0+
-Summary: Shows session progress in indicator icon
+Summary: Tomate indicator plugin
 Source: %{name}-upstream.tar.gz
 Url: https://github.com/eliostvs/tomate-indicator-plugin
 
@@ -45,7 +45,7 @@ Requires: typelib-1_0-AppIndicator3-0_1
 %endif
 
 %description
-Tomate Plugin. Shows session progress in indicator icon.
+Shows session progress in indicator icon.
 
 %prep
 %setup -q -n %{name}-upstream

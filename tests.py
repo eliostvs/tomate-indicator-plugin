@@ -15,12 +15,9 @@ class IndicatorPluginTestCase(unittest.TestCase):
         self.indicator = self.plugin.view.indicator
 
     def test_should_set_icon_idle_and_status_activate_on_activate(self):
-        from gi.repository import AppIndicator3
-
         self.plugin.activate()
 
         self.indicator.set_icon.assert_called_with('tomate-idle')
-        self.indicator.set_status.assert_called_with(AppIndicator3.IndicatorStatus.ACTIVE)
 
     def test_should_set_icon_indicator_on_deactivate(self):
         self.plugin.deactivate()
@@ -28,12 +25,9 @@ class IndicatorPluginTestCase(unittest.TestCase):
         self.indicator.set_icon.assert_called_with('tomate-indicator')
 
     def test_should_set_status_attention(self):
-        from gi.repository import AppIndicator3
+        self.plugin.attention_icon()
 
-        self.plugin.status_attention()
-
-        self.indicator.set_attention_icon.assert_called_with('tomate-attention')
-        self.indicator.set_status.assert_called_with(AppIndicator3.IndicatorStatus.ATTENTION)
+        self.indicator.set_icon.assert_called_with('tomate-attention')
 
     def test_should_change_icon_as_ratio_changes(self):
         self.plugin.update_icon()
