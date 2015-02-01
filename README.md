@@ -1,7 +1,7 @@
 Tomate Indicator Plugin
 =======================
 
-Tomate plugin. Shows session progress in indicator.
+Tomate plugin that shows the session progress in indicator.
 
 Installation
 ------------

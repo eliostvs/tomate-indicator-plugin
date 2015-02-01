@@ -45,7 +45,7 @@ Requires: typelib-1_0-AppIndicator3-0_1
 %endif
 
 %description
-Shows session progress in indicator icon.
+Tomate plugin that shows the session progress in indicator.
 
 %prep
 %setup -q -n %{name}-upstream
