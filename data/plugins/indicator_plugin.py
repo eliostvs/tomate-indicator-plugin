@@ -15,7 +15,6 @@ class IndicatorPlugin(TomatePlugin):
         ('session_started', 'default_icon'),
         ('session_interrupted', 'default_icon'),
         ('sessions_reseted', 'default_icon'),
-        ('session_ended', 'attention_icon'),
     )
 
     def on_activate(self):
@@ -26,13 +25,13 @@ class IndicatorPlugin(TomatePlugin):
 
     @suppress_errors
     def default_icon(self, *args, **kwargs):
-        self.view.indicator.set_icon('tomate-indicator')
+        self.application.view.indicator.set_icon('tomate-indicator')
 
         logger.debug('set default icon')
 
     @suppress_errors
     def idle_icon(self, *args, **kwargs):
-        self.view.indicator.set_icon('tomate-idle')
+        self.application.view.indicator.set_icon('tomate-idle')
 
         logger.debug('set idle icon')
 
@@ -46,12 +45,12 @@ class IndicatorPlugin(TomatePlugin):
         # There is no icon for 100%
         if rounded_percent < 99:
             icon_name = 'tomate-{0:02}'.format(rounded_percent)
-            self.view.indicator.set_icon(icon_name)
+            self.application.view.indicator.set_icon(icon_name)
 
             logger.debug('Update indicator icon %s', icon_name)
 
     @suppress_errors
     def attention_icon(self, *args, **kwargs):
-        self.view.indicator.set_icon('tomate-attention')
+        self.application.view.indicator.set_icon('tomate-attention')
 
         logger.debug('set attention icon')
