@@ -36,7 +36,7 @@ class IndicatorPlugin(TomatePlugin):
         logger.debug('idle icon setted')
 
     @suppress_errors
-    def update_icon(self, sender=None, **kwargs):
+    def update_icon(self, *args, **kwargs):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
         # The icons show 5% steps, so we have to round
@@ -55,5 +55,5 @@ class IndicatorPlugin(TomatePlugin):
 
         logger.debug('attention icon setted')
 
-    def set_icon(self, icon):
-        self.application.view.indicator.set_icon(icon)
+    def set_icon(self, icon_name):
+        self.application.view.indicator.set_icon(icon_name)
