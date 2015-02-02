@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 class IndicatorPlugin(TomatePlugin):
 
     signals = (
-        ('timer_updated', 'update_icon'),
-        ('session_started', 'default_icon'),
+        ('session_ended', 'attention_icon'),
         ('session_interrupted', 'default_icon'),
+        ('session_started', 'default_icon'),
         ('sessions_reseted', 'default_icon'),
+        ('timer_updated', 'update_icon'),
     )
 
     def on_activate(self):
