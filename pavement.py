@@ -21,6 +21,13 @@ def default():
 
 
 @task
+@needs(['clean'])
+def test():
+    os.environ['PYTHONPATH'] = '%s:%s' % (TOMATE_PATH, PLUGIN_PATH)
+    sh('nosetests --cover-erase --with-coverage tests.py')
+
+
+@task
 def clean():
     sh('pyclean data/plugin')
     sh('pyclean .')
@@ -28,10 +35,14 @@ def clean():
 
 
 @task
-@needs(['clean'])
-def test():
-    os.environ['PYTHONPATH'] = '%s:%s' % (TOMATE_PATH, PLUGIN_PATH)
-    sh('nosetests --cover-erase --with-coverage tests.py')
+@needs(['docker_rmi', 'docker_build', 'docker_run'])
+def docker_test():
+    sh('docker build -t eliostvs/tomate-indicator-plugin .')
+
+
+@task
+def docker_rmi():
+    sh('docker rmi eliostvs/tomate-indicator-plugin', ignore_error=True)
 
 
 @task
