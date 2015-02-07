@@ -6,5 +6,6 @@ python-gi
 python-mock
 python-nose
 python-paver
+python-six
 python-xdg
 python-yapsy
