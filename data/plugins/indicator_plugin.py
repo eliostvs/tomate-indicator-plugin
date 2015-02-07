@@ -57,4 +57,4 @@ class IndicatorPlugin(TomatePlugin):
         logger.debug('attention icon setted')
 
     def set_icon(self, icon_name):
-        self.application.view.indicator.set_icon(icon_name)
+        self.app.view.indicator.set_icon(icon_name)
