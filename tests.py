@@ -11,8 +11,8 @@ class IndicatorPluginTestCase(unittest.TestCase):
         from indicator_plugin import IndicatorPlugin
 
         self.plugin = IndicatorPlugin()
-        self.plugin.application = Mock()
-        self.indicator = self.plugin.application.view.indicator
+        self.plugin.app = Mock()
+        self.indicator = self.plugin.app.view.indicator
 
     def test_should_set_idle_icon_when_activate(self):
         self.plugin.activate()
