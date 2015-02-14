@@ -37,7 +37,7 @@ def clean():
 @task
 @needs(['docker_rmi', 'docker_build', 'docker_run'])
 def docker_test():
-    sh('docker build -t eliostvs/tomate-indicator-plugin .')
+    pass
 
 
 @task
