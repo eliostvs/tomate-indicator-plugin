@@ -2,15 +2,16 @@ from __future__ import unicode_literals
 
 import logging
 
-from tomate.plugin import TomatePlugin
+from tomate.graph import graph
+from tomate.plugin import Plugin
 from tomate.utils import suppress_errors
 
 logger = logging.getLogger(__name__)
 
 
-class IndicatorPlugin(TomatePlugin):
+class IndicatorPlugin(Plugin):
 
-    signals = (
+    subscriptions = (
         ('session_ended', 'attention_icon'),
         ('session_interrupted', 'default_icon'),
         ('session_started', 'default_icon'),
@@ -18,21 +19,27 @@ class IndicatorPlugin(TomatePlugin):
         ('timer_updated', 'update_icon'),
     )
 
-    def on_activate(self):
+    def __init__(self):
+        super(IndicatorPlugin, self).__init__()
+        self.indicator = graph.get('tomate.indicator')
+
+    def activate(self):
+        super(IndicatorPlugin, self).activate()
         self.idle_icon()
 
-    def on_deactivate(self):
+    def deactivate(self):
+        super(IndicatorPlugin, self).deactivate()
         self.default_icon()
 
     @suppress_errors
     def default_icon(self, *args, **kwargs):
-        self.set_icon('tomate-indicator')
+        self.indicator.set_icon('tomate-indicator')
 
         logger.debug('default icon setted')
 
     @suppress_errors
     def idle_icon(self, *args, **kwargs):
-        self.set_icon('tomate-idle')
+        self.indicator.set_icon('tomate-idle')
 
         logger.debug('idle icon setted')
 
@@ -46,15 +53,12 @@ class IndicatorPlugin(TomatePlugin):
         # There is no icon for 100%
         if rounded_percent < 99:
             icon_name = 'tomate-{0:02}'.format(rounded_percent)
-            self.set_icon(icon_name)
+            self.indicator.set_icon(icon_name)
 
             logger.debug('setted icon %s', icon_name)
 
     @suppress_errors
     def attention_icon(self, *args, **kwargs):
-        self.set_icon('tomate-attention')
+        self.indicator.set_icon('tomate-attention')
 
         logger.debug('attention icon setted')
-
-    def set_icon(self, icon_name):
-        self.app.view.indicator.set_icon(icon_name)
