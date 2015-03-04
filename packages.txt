@@ -7,5 +7,7 @@ python-mock
 python-nose
 python-paver
 python-six
+python-wiring
+python-wrapt
 python-xdg
 python-yapsy
