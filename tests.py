@@ -6,7 +6,7 @@ from mock import Mock
 from tomate.graph import graph
 
 
-class IndicatorPluginTestCase(unittest.TestCase):
+class TestIndicatorPlugin(unittest.TestCase):
 
     def setUp(self):
         graph.register_factory('tomate.indicator', Mock)
