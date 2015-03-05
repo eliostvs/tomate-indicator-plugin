@@ -19,14 +19,17 @@ class IndicatorPlugin(Plugin):
         ('timer_updated', 'update_icon'),
     )
 
+    @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
         self.indicator = graph.get('tomate.indicator')
 
+    @suppress_errors
     def activate(self):
         super(IndicatorPlugin, self).activate()
         self.idle_icon()
 
+    @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
         self.default_icon()
@@ -37,7 +40,6 @@ class IndicatorPlugin(Plugin):
 
         logger.debug('default icon setted')
 
-    @suppress_errors
     def idle_icon(self, *args, **kwargs):
         self.indicator.set_icon('tomate-idle')
 
