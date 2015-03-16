@@ -1,7 +1,9 @@
 #!/bin/env python
 import os
+from optparse import Option
 
 from paver.easy import needs, path, sh
+from paver.easy import cmdopts, needs, path, sh
 from paver.setuputils import install_distutils_tasks
 from paver.tasks import task
 
@@ -22,9 +24,12 @@ def default():
 
 @task
 @needs(['clean'])
-def test():
+@cmdopts([
+    Option('-v', '--verbosity', default=1, type=int),
+])
+def test(options):
     os.environ['PYTHONPATH'] = '%s:%s' % (TOMATE_PATH, PLUGIN_PATH)
-    sh('nosetests --cover-erase --with-coverage tests.py')
+    sh('nosetests --cover-erase --with-coverage --verbosity=%s tests.py' % options.test.verbosity)
 
 
 @task
