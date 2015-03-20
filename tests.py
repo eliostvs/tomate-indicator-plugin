@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 import unittest
 
 from mock import Mock
+
 from tomate.graph import graph
+from tomate.tests import SubscriptionMixin
 
 
-class TestIndicatorPlugin(unittest.TestCase):
+class TestIndicatorPlugin(SubscriptionMixin, unittest.TestCase):
 
     def setUp(self):
         graph.register_factory('tomate.indicator', Mock)
@@ -14,6 +16,9 @@ class TestIndicatorPlugin(unittest.TestCase):
         from indicator_plugin import IndicatorPlugin
 
         self.plugin = IndicatorPlugin()
+
+    def create_instance(self):
+        return self.plugin
 
     def test_should_set_idle_icon_when_activate(self):
         self.plugin.activate()
