@@ -5,10 +5,9 @@ import unittest
 from mock import Mock
 
 from tomate.graph import graph
-from tomate.tests import SubscriptionMixin
 
 
-class TestIndicatorPlugin(SubscriptionMixin, unittest.TestCase):
+class TestIndicatorPlugin(unittest.TestCase):
 
     def setUp(self):
         graph.register_factory('tomate.indicator', Mock)
@@ -16,9 +15,6 @@ class TestIndicatorPlugin(SubscriptionMixin, unittest.TestCase):
         from indicator_plugin import IndicatorPlugin
 
         self.plugin = IndicatorPlugin()
-
-    def create_instance(self):
-        return self.plugin
 
     def test_should_set_idle_icon_when_activate(self):
         self.plugin.activate()

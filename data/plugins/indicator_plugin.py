@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import logging
 
+from tomate.enums import State
+from tomate.events import Events, on
 from tomate.graph import graph
 from tomate.plugin import Plugin
 from tomate.utils import suppress_errors
@@ -10,14 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class IndicatorPlugin(Plugin):
-
-    subscriptions = (
-        ('session_ended', 'attention_icon'),
-        ('session_interrupted', 'default_icon'),
-        ('session_started', 'default_icon'),
-        ('sessions_reseted', 'default_icon'),
-        ('timer_updated', 'update_icon'),
-    )
 
     @suppress_errors
     def __init__(self):
@@ -35,17 +29,19 @@ class IndicatorPlugin(Plugin):
         self.default_icon()
 
     @suppress_errors
+    @on(Events.Session, [State.stopped, State.running, State.reset])
     def default_icon(self, *args, **kwargs):
         self.indicator.set_icon('tomate-indicator')
 
-        logger.debug('default icon setted')
+        logger.debug('set defaul icon')
 
     def idle_icon(self, *args, **kwargs):
         self.indicator.set_icon('tomate-idle')
 
-        logger.debug('idle icon setted')
+        logger.debug('set idle icon')
 
     @suppress_errors
+    @on(Events.Timer, [State.changed])
     def update_icon(self, *args, **kwargs):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
@@ -57,10 +53,11 @@ class IndicatorPlugin(Plugin):
             icon_name = 'tomate-{0:02}'.format(rounded_percent)
             self.indicator.set_icon(icon_name)
 
-            logger.debug('setted icon %s', icon_name)
+            logger.debug('set icon %s', icon_name)
 
     @suppress_errors
+    @on(Events.Session, [State.finished])
     def attention_icon(self, *args, **kwargs):
         self.indicator.set_icon('tomate-attention')
 
-        logger.debug('attention icon setted')
+        logger.debug('set attention icon')
