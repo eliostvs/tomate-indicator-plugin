@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 import logging
 
-from tomate.enums import State
-from tomate.events import Events, on
+from tomate.constant import State
+from tomate.event import Events, on
 from tomate.graph import graph
 from tomate.plugin import Plugin
 from tomate.utils import suppress_errors
@@ -29,7 +29,7 @@ class IndicatorPlugin(Plugin):
         self.default_icon()
 
     @suppress_errors
-    @on(Events.Session, [State.stopped, State.running, State.reset])
+    @on(Events.Session, [State.stopped, State.started, State.reset])
     def default_icon(self, *args, **kwargs):
         self.indicator.set_icon('tomate-indicator')
 

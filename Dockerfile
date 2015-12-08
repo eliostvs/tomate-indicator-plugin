@@ -1,4 +1,4 @@
-FROM eliostvs/tomate-gtk
+FROM eliostvs/tomate
 
 ENV PROJECT /code/
 
