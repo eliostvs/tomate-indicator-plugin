@@ -42,6 +42,7 @@ class IndicatorPlugin(Plugin):
         self.indicator.set_icon_theme_path(self.config.get_icon_paths()[0])
         self.indicator.set_menu(menu)
 
+    @suppress_errors
     def on_show_menu_activate(self, widget=None):
         return self.view.show()
 
@@ -70,10 +71,12 @@ class IndicatorPlugin(Plugin):
 
             logger.debug('set icon %s', icon_name)
 
+    @suppress_errors
     @on(Events.View, [State.hiding])
     def show(self, sener=None, **kwargs):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
+    @suppress_errors
     @on(Events.Session, [State.finished])
     @on(Events.View, [State.showing])
     def hide(self, sender=None, **kwargs):
