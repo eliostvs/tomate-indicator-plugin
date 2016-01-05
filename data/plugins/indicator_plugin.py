@@ -61,12 +61,8 @@ class IndicatorPlugin(Plugin):
     def update_icon(self, sender=None, **kwargs):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
-        # The icons show 5% steps, so we have to round
-        rounded_percent = percent - percent % 5
-
-        # There is no icon for 100%
-        if rounded_percent < 99:
-            icon_name = 'tomate-{0:02}'.format(rounded_percent)
+        if self.rounded_percent(percent) < 99:
+            icon_name = self.icon_name_for(percent)
             self.indicator.set_icon(icon_name)
 
             logger.debug('set icon %s', icon_name)
@@ -81,3 +77,12 @@ class IndicatorPlugin(Plugin):
     @on(Events.View, [State.showing])
     def hide(self, sender=None, **kwargs):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+
+    def rounded_percent(self, percent):
+        '''
+        The icons show 5% steps, so we have to round.
+        '''
+        return percent - percent % 5
+
+    def icon_name_for(self, percent):
+        return 'tomate-{0:02}'.format(self.rounded_percent(percent))

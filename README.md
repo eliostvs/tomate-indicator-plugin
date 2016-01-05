@@ -15,6 +15,13 @@ Bugs and Suggetions
 
 Bugs and suggestions should be reported at: https://github.com/eliostvs/tomate-indicator-plugin/issues
 
+Changelog
+---------
+
+### v0.4.0
+
+- Using the new event system.
+
 License
 -------
 
