@@ -6,10 +6,10 @@ from locale import gettext as _
 from gi.repository import AppIndicator3, Gtk
 from wiring import implements
 
+import tomate.plugin
 from tomate.constant import State
 from tomate.event import Events, on
 from tomate.graph import graph
-from tomate.plugin import Plugin
 from tomate.utils import suppress_errors
 from tomate.view import TrayIcon
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @implements(TrayIcon)
-class IndicatorPlugin(Plugin):
+class IndicatorPlugin(tomate.plugin.Plugin):
 
     @suppress_errors
     def __init__(self):
