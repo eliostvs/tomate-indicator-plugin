@@ -1,40 +1,26 @@
 Tomate Indicator Plugin
 =======================
 
-Tomate plugin that shows the session progress in indicator.
+Tomate is a timer for the Pomodoro Techinique. 
+This plugin shows the progress of the session in the indicator area.
 
 Installation
 ------------
 
-### Ubuntu (14.04, 14.10)
+Go to [this page](https://github.com/eliostvs/tomate-gtk) for instructions.
 
-```
-RELEASE=`sed -n 's/VERSION_ID="\(.*\)"/\1/p' /etc/os-release`
-sudo wget -O- http://download.opensuse.org/repositories/home:/eliostvs:/tomate/xUbuntu_$RELEASE/Release.key | sudo apt-key add -
-sudo bash -c "echo 'deb http://download.opensuse.org/repositories/home:/eliostvs:/tomate/xUbuntu_$RELEASE/ ./' > /etc/apt/sources.list.d/tomate.list"
-sudo apt-get update && sudo apt-get install tomate-indicator-plugin
-```
-
-### Opensuse (13.2)
-
-```
-RELEASE=`cat /etc/SuSE-release | sed -n "s/VERSION = \(.*\)$/\1/p"`
-sudo zypper ar -f http://download.opensuse.org/repositories/home:/eliostvs:/tomate/openSUSE_$RELEASE/home:eliostvs:tomate.repo
-sudo zypper install tomate-indicator-plugin
-```
-
-## Fedora (20, 21)
-
-```
-RELEASE=`cat /etc/fedora-release | grep -o '[0-9][0-9]*'`
-sudo yum-config-manager --add-repo http://download.opensuse.org/repositories/home:/eliostvs:/tomate/Fedora_$RELEASE/home:eliostvs:tomate.repo
-sudo yum install tomate-indicator-plugin
-```
 
 Bugs and Suggetions
 -------------------
 
-Bugs and suggestions should be reported at: https://github.com/eliostvs/tomate-indicator-plugin/issues
+Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomate-indicator-plugin/issues).
+
+Changelog
+---------
+
+### v0.4.0
+
+- Using the new event system.
 
 License
 -------
