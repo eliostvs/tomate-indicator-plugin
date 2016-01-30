@@ -24,7 +24,7 @@ Changelog
 
 ### v0.4.0
 
-- Using the new event system.
+- Using the new event system
 
 License
 -------
