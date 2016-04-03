@@ -22,22 +22,21 @@ def rounded_percent(percent):
     return percent - percent % 5
 
 
-class IndicatorMenu(object):
+class IndicatorMenu(Gtk.Menu):
 
     def __init__(self, view):
+        Gtk.Menu.__init__(self, halign=Gtk.Align.CENTER)
         self.view = view
-
-        self.menu = Gtk.Menu(halign=Gtk.Align.CENTER)
 
         self.show_option = Gtk.MenuItem(_('Show'), visible=True)
         self.show_option.connect('activate', self._on_show_menu_activate)
-        self.menu.add(self.show_option)
+        self.add(self.show_option)
 
         self.hide_option = Gtk.MenuItem(_('Hide'), visible=False)
         self.hide_option.connect('activate', self._on_hide_menu_activate)
-        self.menu.add(self.hide_option)
+        self.add(self.hide_option)
 
-        self.menu.show_all()
+        self.show_all()
 
     def _on_show_menu_activate(self, widget, view):
         self.active_hide_window_option()
