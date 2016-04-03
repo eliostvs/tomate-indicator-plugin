@@ -22,7 +22,6 @@ def make_indicator():
     from indicator_plugin import IndicatorPlugin
 
     plugin = IndicatorPlugin()
-    plugin.activate()
 
     return plugin
 
@@ -87,6 +86,7 @@ class IndicatorPluginComponentTest(unittest.TestCase):
 
     def test_should_call_update_icon_when_time_changed(self, mock_indicator=None):
         plugin = make_indicator()
+        plugin.activate()
 
         result = Events.Timer.send(State.changed)
 
@@ -95,6 +95,7 @@ class IndicatorPluginComponentTest(unittest.TestCase):
 
     def test_should_call_show_when_session_started(self, mock_indicator=None):
         plugin = make_indicator()
+        plugin.activate()
 
         result = Events.Session.send(State.started)
 
@@ -103,6 +104,7 @@ class IndicatorPluginComponentTest(unittest.TestCase):
 
     def test_should_call_hide_when_timer_finished(self, mock_indicator=None):
         plugin = make_indicator()
+        plugin.activate()
 
         result = Events.Session.send(State.finished)
 
