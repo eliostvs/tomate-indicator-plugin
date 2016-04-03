@@ -8,13 +8,12 @@ PYTHONPATH = PYTHONPATH=$(TOMATE_PATH):$(PLUGIN_PATH)
 DOCKER_IMAGE_NAME = $(AUTHOR)/$(PACKAGE)
 PROJECT = home:eliostvs:tomate
 OBS_API_URL = https://api.opensuse.org:443/trigger/runservice?project=$(PROJECT)&package=$(PACKAGE)
-VERBOSE = 1
 
 clean:
 	find . \( -iname "*.pyc" -o -iname "__pycache__" \) -print0 | xargs -0 rm -rf
 
 test: clean
-	$(PYTHONPATH) nosetests --with-coverage --cover-erase --cover-package=$(PLUGIN_PATH) --verbosity=$(VERBOSE)
+	$(PYTHONPATH) py.test test.py --cov-report term-missing --cov=$(PLUGIN_PATH) -v
 
 docker-clean:
 	docker rmi $(DOCKER_IMAGE_NAME) 2> /dev/null || echo $(DOCKER_IMAGE_NAME) not found!
