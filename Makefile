@@ -1,11 +1,13 @@
-PROJECT = tomate-indicator-plugin
+PACKAGE = tomate-indicator-plugin
 AUTHOR = eliostvs
-PROJECT_ROOT = $(CURDIR)
-TOMATE_PATH = $(PROJECT_ROOT)/tomate
-DATA_PATH = $(PROJECT_ROOT)/data
+PACKAGE_ROOT = $(CURDIR)
+TOMATE_PATH = $(PACKAGE_ROOT)/tomate
+DATA_PATH = $(PACKAGE_ROOT)/data
 PLUGIN_PATH = $(DATA_PATH)/plugins
 PYTHONPATH = PYTHONPATH=$(TOMATE_PATH):$(PLUGIN_PATH)
-DOCKER_IMAGE_NAME= $(AUTHOR)/$(PROJECT)
+DOCKER_IMAGE_NAME = $(AUTHOR)/$(PACKAGE)
+PROJECT = home:eliostvs:tomate
+OBS_API_URL = https://api.opensuse.org:443/trigger/runservice?project=$(PROJECT)&package=$(PACKAGE)
 VERBOSE = 1
 
 clean:
@@ -21,9 +23,12 @@ docker-build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
 	
 docker-test:
-	docker run --rm -v $(PROJECT_ROOT):/code $(DOCKER_IMAGE_NAME)
+	docker run --rm -v $(PACKAGE_ROOT):/code $(DOCKER_IMAGE_NAME)
 
 docker-all: docker-clean docker-build docker-test
 
 docker-enter:
-	docker run --rm -v $(PROJECT_ROOT):/code -it --entrypoint="bash" $(DOCKER_IMAGE_NAME)
+	docker run --rm -v $(PACKAGE_ROOT):/code -it --entrypoint="bash" $(DOCKER_IMAGE_NAME)
+
+trigger-build:
+	curl -X POST -H "Authorization: Token $(TOKEN)" $(OBS_API_URL)

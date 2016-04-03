@@ -78,7 +78,7 @@ class IndicatorPluginTest(unittest.TestCase):
 
 
 @patch('indicator_plugin.AppIndicator3.Indicator')
-class IndicatorPluginComponentTest(unittest.TestCase):
+class IndicatorPluginIntegrationTest(unittest.TestCase):
 
     @staticmethod
     def method_called(result):
