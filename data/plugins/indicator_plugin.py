@@ -55,6 +55,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
 
     @suppress_errors
     @on(Events.Session, [State.finished])
+    @on(Events.Session, [State.stopped])
     def hide(self, sender=None, **kwargs):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
 

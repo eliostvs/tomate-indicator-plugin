@@ -110,3 +110,12 @@ class IndicatorPluginIntegrationTest(unittest.TestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual(plugin.hide, self.method_called(result))
+
+    def test_should_call_hide_when_timer_stopped(self, mock_indicator=None):
+        plugin = make_indicator()
+        plugin.activate()
+
+        result = Events.Session.send(State.stopped)
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(plugin.hide, self.method_called(result))
