@@ -9,6 +9,10 @@ from tomate.graph import graph
 from tomate.view import TrayIcon
 
 
+def refresh_gui():
+    while Gtk.events_pending():
+        Gtk.main_iteration_do(False)
+
 
 @pytest.mark.parametrize('input, expected', [
     (1, 0),
@@ -26,10 +30,10 @@ def test_rounded_percent(input, expected):
 
 
 @pytest.fixture()
-def menu_indicator():
+def menu_indicator(window_is_visible=False):
     from indicator_plugin import IndicatorMenu
 
-    view = Mock()
+    view = Mock(**{'widget.get_visible.return_value': window_is_visible})
     menu = IndicatorMenu(view)
 
     return view, menu
@@ -44,8 +48,8 @@ class TestIndicatorMenu:
 
         view.show.assert_called_once()
 
-        assert menu.hide_option.get_visible() == True
-        assert menu.show_option.get_visible() == False
+        assert menu.hide.get_visible() == True
+        assert menu.show.get_visible() == False
 
     def test_should_call_view_hide_menu_activate(self, menu_indicator):
         view, menu = menu_indicator
@@ -54,8 +58,22 @@ class TestIndicatorMenu:
 
         view.hide.assert_called_once()
 
-        assert menu.hide_option.get_visible() == False
-        assert menu.show_option.get_visible() == True
+        assert menu.hide.get_visible() == False
+        assert menu.show.get_visible() == True
+
+    def test_hide_menu_should_be_true_when_view_is_visible(self):
+        view, menu = menu_indicator(window_is_visible=True)
+
+        assert view.widget.get_visible() == True
+        assert menu.hide.get_visible() == True
+        assert menu.show.get_visible() == False
+
+    def test_show_menu_should_be_true_when_view_is_not_visible(self):
+        view, menu = menu_indicator(window_is_visible=False)
+
+        assert view.widget.get_visible() == False
+        assert menu.hide.get_visible() == False
+        assert menu.show.get_visible() == True
 
 
 @patch('indicator_plugin.AppIndicator3.Indicator')
@@ -65,6 +83,7 @@ def plugin(mock_indicator):
 
     graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
     graph.register_instance('tomate.view', Mock())
+    graph.register_instance('indicator.menu', Mock())
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()
@@ -101,7 +120,7 @@ class TestIndicatorPlugin:
         assert TrayIcon in graph.providers.keys()
         assert graph.get(TrayIcon) == plugin
 
-    def test_should_unregister_when_plugin_deactive(self, plugin):
+    def test_should_unregister_when_plugin_desactive(self, plugin):
         graph.register_instance(TrayIcon, plugin)
 
         plugin.deactivate()
@@ -130,6 +149,7 @@ class TestIntegrationIndicatorPlugin:
 
         assert len(result) == 1
         assert plugin.show == self.method_called(result)
+        plugin.menu.active_hide_menu.assert_called_once_with()
 
     def test_should_call_hide_when_timer_finished(self, plugin):
         plugin.activate()
@@ -138,6 +158,7 @@ class TestIntegrationIndicatorPlugin:
 
         assert len(result) == 1
         assert plugin.hide == self.method_called(result)
+        plugin.menu.active_show_menu.assert_called_once_with()
 
     def test_should_call_hide_when_timer_stopped(self, plugin):
         plugin.activate()
@@ -146,3 +167,4 @@ class TestIntegrationIndicatorPlugin:
 
         assert len(result) == 1
         assert plugin.hide == self.method_called(result)
+        plugin.menu.active_show_menu.assert_called_once_with()
