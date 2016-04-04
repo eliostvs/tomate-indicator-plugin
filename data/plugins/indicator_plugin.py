@@ -47,12 +47,12 @@ class IndicatorMenu(Gtk.Menu):
         else:
             self.active_show_menu()
 
-    def _on_show_menu_activate(self, widget, view):
+    def _on_show_menu_activate(self, widget):
         self.active_hide_menu()
 
         return self.view.show()
 
-    def _on_hide_menu_activate(self, widget, view):
+    def _on_hide_menu_activate(self, widget):
         self.active_show_menu()
 
         return self.view.hide()
