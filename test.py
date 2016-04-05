@@ -1,17 +1,13 @@
 from __future__ import unicode_literals
 
 import pytest
-from gi.repository import AppIndicator3, Gtk
+from gi.repository import AppIndicator3
 from mock import Mock, patch
 from tomate.constant import State
 from tomate.event import Events
 from tomate.graph import graph
 from tomate.view import TrayIcon
-
-
-def refresh_gui():
-    while Gtk.events_pending():
-        Gtk.main_iteration_do(False)
+from tomate.event import connect_events
 
 
 @pytest.mark.parametrize('input, expected', [
@@ -31,7 +27,11 @@ def test_rounded_percent(input, expected):
 
 @pytest.fixture()
 def menu_indicator(window_is_visible=False):
+    graph.providers.clear()
+
     from indicator_plugin import IndicatorMenu
+
+    Events.View.receivers.clear()
 
     view = Mock(**{'widget.get_visible.return_value': window_is_visible})
     menu = IndicatorMenu(view)
@@ -44,7 +44,7 @@ class TestIndicatorMenu:
     def test_should_call_plugin_view_when_menu_activate(self, menu_indicator):
         view, menu = menu_indicator
 
-        menu._on_show_menu_activate(None, view)
+        menu._on_show_menu_activate(None)
 
         view.show.assert_called_once()
 
@@ -54,7 +54,7 @@ class TestIndicatorMenu:
     def test_should_call_view_hide_menu_activate(self, menu_indicator):
         view, menu = menu_indicator
 
-        menu._on_hide_menu_activate(None, view)
+        menu._on_hide_menu_activate(None)
 
         view.hide.assert_called_once()
 
@@ -83,16 +83,50 @@ def plugin(mock_indicator):
 
     graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
     graph.register_instance('tomate.view', Mock())
-    graph.register_instance('indicator.menu', Mock())
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()
+    Events.View.receivers.clear()
 
-    from indicator_plugin import IndicatorPlugin
+    from indicator_plugin import IndicatorPlugin, IndicatorMenu
 
-    plugin = IndicatorPlugin()
+    graph.register_factory('indicator.menu', IndicatorMenu)
 
-    return plugin
+    return IndicatorPlugin()
+
+
+def method_called(result):
+    return result[0][0]
+
+
+class TestIntegrationIndicatorMenu:
+
+    def test_should_call_menu_active_hide_when_view_is_showing(self, plugin):
+        plugin.activate()
+
+        result = Events.View.send(State.showing)
+
+        assert len(result) == 1
+        assert plugin.menu.active_hide_menu == method_called(result)
+
+    def test_should_call_menu_active_show_when_view_is_hding(self, plugin):
+        plugin.activate()
+
+        result = Events.View.send(State.hiding)
+
+        assert len(result) == 1
+        assert plugin.menu.active_show_menu == method_called(result)
+
+    def test_should_not_call_menu_after_deactivate(self, plugin):
+        assert len(Events.View.receivers) == 0
+
+        plugin.activate()
+
+        plugin.deactivate()
+
+        result = Events.View.send(State.hiding)
+
+        assert len(result) == 0
 
 
 class TestIndicatorPlugin:
@@ -114,13 +148,13 @@ class TestIndicatorPlugin:
 
         plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
-    def test_should_register_plugin_when_active(self, plugin):
+    def test_should_register_plugin_when_activate(self, plugin):
         plugin.activate()
 
         assert TrayIcon in graph.providers.keys()
         assert graph.get(TrayIcon) == plugin
 
-    def test_should_unregister_when_plugin_desactive(self, plugin):
+    def test_should_unregister_when_plugin_deactivate(self, plugin):
         graph.register_instance(TrayIcon, plugin)
 
         plugin.deactivate()
@@ -130,17 +164,13 @@ class TestIndicatorPlugin:
 
 class TestIntegrationIndicatorPlugin:
 
-    @staticmethod
-    def method_called(result):
-        return result[0][0]
-
     def test_should_call_update_icon_when_time_changed(self, plugin):
         plugin.activate()
 
         result = Events.Timer.send(State.changed)
 
         assert len(result) == 1
-        assert plugin.update_icon == self.method_called(result)
+        assert plugin.update_icon == method_called(result)
 
     def test_should_call_show_when_session_started(self, plugin):
         plugin.activate()
@@ -148,8 +178,7 @@ class TestIntegrationIndicatorPlugin:
         result = Events.Session.send(State.started)
 
         assert len(result) == 1
-        assert plugin.show == self.method_called(result)
-        plugin.menu.active_hide_menu.assert_called_once_with()
+        assert plugin.show == method_called(result)
 
     def test_should_call_hide_when_timer_finished(self, plugin):
         plugin.activate()
@@ -157,8 +186,7 @@ class TestIntegrationIndicatorPlugin:
         result = Events.Session.send(State.finished)
 
         assert len(result) == 1
-        assert plugin.hide == self.method_called(result)
-        plugin.menu.active_show_menu.assert_called_once_with()
+        assert plugin.hide == method_called(result)
 
     def test_should_call_hide_when_timer_stopped(self, plugin):
         plugin.activate()
@@ -166,5 +194,4 @@ class TestIntegrationIndicatorPlugin:
         result = Events.Session.send(State.stopped)
 
         assert len(result) == 1
-        assert plugin.hide == self.method_called(result)
-        plugin.menu.active_show_menu.assert_called_once_with()
+        assert plugin.hide == method_called(result)

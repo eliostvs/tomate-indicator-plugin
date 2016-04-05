@@ -8,6 +8,7 @@ from gi.repository import AppIndicator3, Gtk
 from tomate.constant import State
 from tomate.event import Events, on
 from tomate.graph import graph
+from tomate.plugin import connect_events, disconnect_events
 from tomate.utils import suppress_errors
 from tomate.view import TrayIcon
 from wiring import implements, inject
@@ -22,24 +23,24 @@ def rounded_percent(percent):
     return percent - percent % 5
 
 
-class IndicatorMenu(Gtk.Menu):
+class IndicatorMenu(object):
 
     @inject(view='tomate.view')
     def __init__(self, view):
-        Gtk.Menu.__init__(self, halign=Gtk.Align.CENTER)
+        self.menu = Gtk.Menu(halign=Gtk.Align.CENTER)
         self.view = view
 
         self.show = Gtk.MenuItem(_('Show'), visible=False, no_show_all=True)
         self.show.connect('activate', self._on_show_menu_activate)
-        self.add(self.show)
+        self.menu.add(self.show)
 
         self.hide = Gtk.MenuItem(_('Hide'), visible=False, no_show_all=True)
         self.hide.connect('activate', self._on_hide_menu_activate)
-        self.add(self.hide)
+        self.menu.add(self.hide)
 
         self._update_options()
 
-        self.show_all()
+        self.menu.show_all()
 
     def _update_options(self):
         if self.view.widget.get_visible():
@@ -57,13 +58,19 @@ class IndicatorMenu(Gtk.Menu):
 
         return self.view.hide()
 
-    def active_hide_menu(self):
+    @on(Events.View, [State.showing])
+    def active_hide_menu(self, sender=None, **kwargs):
         self.hide.set_visible(True)
         self.show.set_visible(False)
 
-    def active_show_menu(self):
+    @on(Events.View, [State.hiding])
+    def active_show_menu(self, sender=None, **kwargs):
         self.hide.set_visible(False)
         self.show.set_visible(True)
+
+    @property
+    def widget(self):
+        return self.menu
 
 
 graph.register_factory('indicator.menu', IndicatorMenu)
@@ -75,11 +82,11 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
-
         self.menu = graph.get('indicator.menu')
         self.config = graph.get('tomate.config')
+
         self.indicator = self._build_indicator()
-        self.indicator.set_menu(self.menu)
+        self.indicator.set_menu(self.menu.widget)
         self.indicator.set_icon_theme_path(self._get_first_icon_theme())
 
     @suppress_errors
@@ -87,10 +94,14 @@ class IndicatorPlugin(tomate.plugin.Plugin):
         super(IndicatorPlugin, self).activate()
         graph.register_instance(TrayIcon, self)
 
+        connect_events(self.menu)
+
     @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
         graph.unregister_provider(TrayIcon)
+
+        disconnect_events(self.menu)
 
     @suppress_errors
     @on(Events.Timer, [State.changed])
@@ -106,7 +117,6 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     @suppress_errors
     @on(Events.Session, [State.started])
     def show(self, sender=None, **kwargs):
-        self.menu.active_hide_menu()
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
@@ -114,7 +124,6 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     @on(Events.Session, [State.stopped])
     def hide(self, sender=None, **kwargs):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
-        self.menu.active_show_menu()
 
     def _get_first_icon_theme(self):
         return self.config.get_icon_paths()[0]
