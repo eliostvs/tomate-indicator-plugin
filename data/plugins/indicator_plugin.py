@@ -26,8 +26,8 @@ def rounded_percent(percent):
 class IndicatorMenu(object):
 
     def __init__(self, view):
-        self.menu = Gtk.Menu(halign=Gtk.Align.CENTER)
         self.view = view
+        self.menu = Gtk.Menu(halign=Gtk.Align.CENTER)
 
         self.show = Gtk.MenuItem(_('Show'), visible=False, no_show_all=True)
         self.show.connect('activate', self._on_show_menu_activate)
@@ -37,11 +37,11 @@ class IndicatorMenu(object):
         self.hide.connect('activate', self._on_hide_menu_activate)
         self.menu.add(self.hide)
 
-        self._update_options()
+        self._update_menus()
 
         self.menu.show_all()
 
-    def _update_options(self):
+    def _update_menus(self):
         if self.view.widget.get_visible():
             self.active_hide_menu()
         else:
@@ -108,7 +108,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
         if rounded_percent(percent) < 99:
-            icon_name = self._icon_name_for(percent)
+            icon_name = self._icon_name_for(rounded_percent(percent))
             self.indicator.set_icon(icon_name)
 
             logger.debug('set icon %s', icon_name)
@@ -119,8 +119,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
-    @on(Events.Session, [State.finished])
-    @on(Events.Session, [State.stopped])
+    @on(Events.Session, [State.finished, State.stopped])
     def hide(self, sender=None, **kwargs):
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
 
@@ -129,7 +128,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
 
     @staticmethod
     def _icon_name_for(percent):
-        return 'tomate-{0:02}'.format(rounded_percent(percent))
+        return 'tomate-{0:02}'.format(percent)
 
     @staticmethod
     def _build_indicator():
