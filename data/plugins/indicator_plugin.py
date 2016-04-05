@@ -25,7 +25,6 @@ def rounded_percent(percent):
 
 class IndicatorMenu(object):
 
-    @inject(view='tomate.view')
     def __init__(self, view):
         self.menu = Gtk.Menu(halign=Gtk.Align.CENTER)
         self.view = view
@@ -73,16 +72,16 @@ class IndicatorMenu(object):
         return self.menu
 
 
-graph.register_factory('indicator.menu', IndicatorMenu)
-
-
 @implements(TrayIcon)
 class IndicatorPlugin(tomate.plugin.Plugin):
 
     @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
-        self.menu = graph.get('indicator.menu')
+        view = graph.get('tomate.view')
+
+        self.menu = IndicatorMenu(view)
+
         self.config = graph.get('tomate.config')
 
         self.indicator = self._build_indicator()
@@ -93,15 +92,15 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def activate(self):
         super(IndicatorPlugin, self).activate()
         graph.register_instance(TrayIcon, self)
-
         connect_events(self.menu)
+        self.show()
 
     @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
         graph.unregister_provider(TrayIcon)
-
         disconnect_events(self.menu)
+        self.hide()
 
     @suppress_errors
     @on(Events.Timer, [State.changed])

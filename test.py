@@ -7,7 +7,6 @@ from tomate.constant import State
 from tomate.event import Events
 from tomate.graph import graph
 from tomate.view import TrayIcon
-from tomate.event import connect_events
 
 
 @pytest.mark.parametrize('input, expected', [
@@ -88,9 +87,7 @@ def plugin(mock_indicator):
     Events.Timer.receivers.clear()
     Events.View.receivers.clear()
 
-    from indicator_plugin import IndicatorPlugin, IndicatorMenu
-
-    graph.register_factory('indicator.menu', IndicatorMenu)
+    from indicator_plugin import IndicatorPlugin
 
     return IndicatorPlugin()
 
@@ -161,6 +158,17 @@ class TestIndicatorPlugin:
 
         assert TrayIcon not in graph.providers.keys()
 
+    def test_should_show_indicator_when_plugin_activate(self, plugin):
+        plugin.activate()
+
+        plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+
+    def test_should_hide_indicator_when_plugin_deactivate(self, plugin):
+        graph.register_instance(TrayIcon, plugin)
+
+        plugin.deactivate()
+
+        plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
 class TestIntegrationIndicatorPlugin:
 
