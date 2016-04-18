@@ -17,7 +17,7 @@ clean:
 	find . \( -iname "*.pyc" -o -iname "__pycache__" \) -print0 | xargs -0 rm -rf
 
 test: clean
-	$(PYTHONPATH) py.test test.py --cov-report term-missing --cov=$(PLUGIN_PATH) -v
+	$(PYTHONPATH) py.test test.py --cov-report term-missing --cov=$(PLUGIN_PATH) -v --flake8
 
 docker-clean:
 	docker rmi $(DOCKER_IMAGE_NAME) 2> /dev/null || echo $(DOCKER_IMAGE_NAME) not found!
