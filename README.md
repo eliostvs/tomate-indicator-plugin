@@ -18,6 +18,11 @@ Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomat
 Changelog
 ---------
 
+### v0.6.0
+
+- Using menu from tomate-gtk
+- Using py.test
+
 ### v0.5.0
 
 - Remove linux package metadata
