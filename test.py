@@ -24,7 +24,6 @@ def setup_function(function):
 @pytest.fixture()
 @patch('indicator_plugin.AppIndicator3.Indicator')
 def plugin(Indicator):
-
     from indicator_plugin import IndicatorPlugin
 
     return IndicatorPlugin()
