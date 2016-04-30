@@ -14,7 +14,7 @@ def setup_function(function):
 
     graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
     graph.register_instance('tomate.view', Mock())
-    graph.register_instance('view.menu', Mock())
+    graph.register_instance('trayicon.menu', Mock())
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()

@@ -22,7 +22,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
 
-        self.menu = graph.get('view.menu')
+        self.menu = graph.get('trayicon.menu')
         self.config = graph.get('tomate.config')
 
         self.indicator = self._build_indicator()
