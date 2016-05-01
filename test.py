@@ -116,3 +116,19 @@ def test_should_call_hide_when_timer_stopped(plugin):
 
     assert len(result) == 1
     assert plugin.hide == method_called(result)
+
+
+@patch('indicator_plugin.connect_events')
+def test_should_connect_menu_events_when_plugin_activate(connect_events, plugin):
+    plugin.activate()
+
+    connect_events.assert_called_once_with(plugin.menu)
+
+
+@patch('indicator_plugin.disconnect_events')
+def test_should_disconnect_menu_events_when_plugin_deactivate(disconnect_events, plugin):
+    plugin.activate()
+
+    plugin.deactivate()
+
+    disconnect_events.assert_called_once_with(plugin.menu)
