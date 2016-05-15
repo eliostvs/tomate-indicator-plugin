@@ -2,6 +2,10 @@ from __future__ import unicode_literals
 
 import logging
 
+import gi
+
+gi.require_version('AppIndicator3', '0.1')
+
 import tomate.plugin
 from gi.repository import AppIndicator3
 from tomate.constant import State

@@ -21,6 +21,7 @@ Change Logs
 
 - Using menu from tomate-gtk
 - Using py.test
+- Fix gtk warnings
 
 ### 0.5.0
 
