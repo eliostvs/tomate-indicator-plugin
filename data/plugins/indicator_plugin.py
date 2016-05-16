@@ -28,23 +28,27 @@ class IndicatorPlugin(tomate.plugin.Plugin):
 
         self.menu = graph.get('trayicon.menu')
         self.config = graph.get('tomate.config')
+        self.session = graph.get('tomate.session')
 
-        self.indicator = self._build_indicator()
-        self.indicator.set_menu(self.menu.widget)
-        self.indicator.set_icon_theme_path(self._get_first_icon_theme())
+        self.widget = self.new_indicator_with_menu_and_icon_theme(self.menu.widget,
+                                                                  self._get_first_icon_theme())
 
     @suppress_errors
     def activate(self):
         super(IndicatorPlugin, self).activate()
+
         graph.register_instance(TrayIcon, self)
         connect_events(self.menu)
-        self.show()
+
+        self._show_if_session_is_running()
 
     @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
+
         graph.unregister_provider(TrayIcon)
         disconnect_events(self.menu)
+
         self.hide()
 
     @suppress_errors
@@ -54,19 +58,19 @@ class IndicatorPlugin(tomate.plugin.Plugin):
 
         if rounded_percent(percent) < 99:
             icon_name = self._icon_name_for(rounded_percent(percent))
-            self.indicator.set_icon(icon_name)
+            self.widget.set_icon(icon_name)
 
             logger.debug('set icon %s', icon_name)
 
     @suppress_errors
     @on(Events.Session, [State.started])
     def show(self, sender=None, **kwargs):
-        self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+        self.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
     @on(Events.Session, [State.finished, State.stopped])
     def hide(self, sender=None, **kwargs):
-        self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+        self.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
 
     def _get_first_icon_theme(self):
         return self.config.get_icon_paths()[0]
@@ -76,9 +80,21 @@ class IndicatorPlugin(tomate.plugin.Plugin):
         return 'tomate-{0:02}'.format(percent)
 
     @staticmethod
-    def _build_indicator():
-        return AppIndicator3.Indicator.new(
+    def new_indicator_with_menu_and_icon_theme(menu, icon_theme_path):
+        indicator = AppIndicator3.Indicator.new(
             'tomate',
             'tomate-indicator',
             AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
         )
+
+        indicator.set_menu(menu)
+        indicator.set_icon_theme_path(icon_theme_path)
+
+        return indicator
+
+    def _show_if_session_is_running(self):
+        if self.session.is_running():
+            self.show()
+
+        else:
+            self.hide()

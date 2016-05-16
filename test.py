@@ -13,12 +13,17 @@ def setup_function(function):
     graph.providers.clear()
 
     graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
-    graph.register_instance('tomate.view', Mock())
+    graph.register_instance('tomate.session', Mock())
     graph.register_instance('trayicon.menu', Mock())
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()
     Events.View.receivers.clear()
+
+
+@pytest.fixture()
+def session():
+    return graph.get('tomate.session')
 
 
 @pytest.fixture()
@@ -35,22 +40,22 @@ def method_called(result):
 
 def test_should_update_indicator_icon_when_plugin_update(plugin):
     plugin.update_icon(time_ratio=0.5)
-    plugin.indicator.set_icon.assert_called_with('tomate-50')
+    plugin.widget.set_icon.assert_called_with('tomate-50')
 
     plugin.update_icon(time_ratio=0.9)
-    plugin.indicator.set_icon.assert_called_with('tomate-90')
+    plugin.widget.set_icon.assert_called_with('tomate-90')
 
 
 def test_should_change_indicator_status_active_when_plugin_shows(plugin):
     plugin.show()
 
-    plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
 
 
 def test_should_change_indicator_passive_when_plugin_hid(plugin):
     plugin.hide()
 
-    plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
 
 def test_should_register_plugin_when_activate(plugin):
@@ -71,7 +76,7 @@ def test_should_unregister_when_plugin_deactivate(plugin):
 def test_should_show_indicator_when_plugin_activate(plugin):
     plugin.activate()
 
-    plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
 
 
 def test_should_hide_indicator_when_plugin_deactivate(plugin):
@@ -79,7 +84,7 @@ def test_should_hide_indicator_when_plugin_deactivate(plugin):
 
     plugin.deactivate()
 
-    plugin.indicator.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
 
 def test_should_call_update_icon_when_time_changed(plugin):
@@ -132,3 +137,19 @@ def test_should_disconnect_menu_events_when_plugin_deactivate(disconnect_events,
     plugin.deactivate()
 
     disconnect_events.assert_called_once_with(plugin.menu)
+
+
+def test_should_hide_indicator_if_session_is_not_running(session, plugin):
+    session.is_running.return_value = False
+
+    plugin.activate()
+
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+
+
+def test_should_show_indicator_if_session_is_running(session, plugin):
+    session.is_running.return_value = True
+
+    plugin.activate()
+
+    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
