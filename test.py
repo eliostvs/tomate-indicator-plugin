@@ -123,6 +123,12 @@ def test_should_call_hide_when_timer_stopped(plugin):
     assert plugin.hide == method_called(result)
 
 
+def test_should_set_idle_icon_when_plugin_hide(plugin):
+    plugin.hide()
+
+    plugin.widget.set_icon.assert_called_once_with('tomate-idle')
+
+
 @patch('indicator_plugin.connect_events')
 def test_should_connect_menu_events_when_plugin_activate(connect_events, plugin):
     plugin.activate()

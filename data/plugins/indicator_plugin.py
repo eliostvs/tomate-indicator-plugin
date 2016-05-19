@@ -71,6 +71,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     @on(Events.Session, [State.finished, State.stopped])
     def hide(self, sender=None, **kwargs):
         self.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+        self.widget.set_icon('tomate-idle')
 
     def _get_first_icon_theme(self):
         return self.config.get_icon_paths()[0]
