@@ -1,17 +1,20 @@
 from __future__ import unicode_literals
 
 import logging
-from locale import gettext as _
 
-from gi.repository import AppIndicator3, Gtk
-from wiring import implements
+import gi
+
+gi.require_version('AppIndicator3', '0.1')
 
 import tomate.plugin
+from gi.repository import AppIndicator3
 from tomate.constant import State
 from tomate.event import Events, on
 from tomate.graph import graph
-from tomate.utils import suppress_errors
+from tomate.plugin import connect_events, disconnect_events
+from tomate.utils import rounded_percent, suppress_errors
 from tomate.view import TrayIcon
+from wiring import implements
 
 logger = logging.getLogger(__name__)
 
@@ -23,66 +26,76 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
 
-        self.view = graph.get('tomate.view')
+        self.menu = graph.get('trayicon.menu')
         self.config = graph.get('tomate.config')
+        self.session = graph.get('tomate.session')
 
-        menuitem = Gtk.MenuItem(_('Show'), visible=False)
-        menuitem.connect('activate', self.on_show_menu_activate)
-        menu = Gtk.Menu(halign=Gtk.Align.CENTER)
-        menu.add(menuitem)
-
-        menu.show_all()
-
-        self.indicator = AppIndicator3.Indicator.new(
-                'tomate',
-                'tomate-indicator',
-                AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
-        )
-
-        self.indicator.set_icon_theme_path(self.config.get_icon_paths()[0])
-        self.indicator.set_menu(menu)
-
-    @suppress_errors
-    def on_show_menu_activate(self, widget=None):
-        return self.view.show()
+        self.widget = self.new_indicator_with_menu_and_icon_theme(self.menu.widget,
+                                                                  self._get_first_icon_theme())
 
     @suppress_errors
     def activate(self):
         super(IndicatorPlugin, self).activate()
+
         graph.register_instance(TrayIcon, self)
+        connect_events(self.menu)
+
+        self._show_if_session_is_running()
 
     @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
+
         graph.unregister_provider(TrayIcon)
+        disconnect_events(self.menu)
+
+        self.hide()
 
     @suppress_errors
     @on(Events.Timer, [State.changed])
     def update_icon(self, sender=None, **kwargs):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
-        if self.rounded_percent(percent) < 99:
-            icon_name = self.icon_name_for(percent)
-            self.indicator.set_icon(icon_name)
+        if rounded_percent(percent) < 99:
+            icon_name = self._icon_name_for(rounded_percent(percent))
+            self.widget.set_icon(icon_name)
 
             logger.debug('set icon %s', icon_name)
 
     @suppress_errors
-    @on(Events.View, [State.hiding])
-    def show(self, sener=None, **kwargs):
-        self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+    @on(Events.Session, [State.started])
+    def show(self, sender=None, **kwargs):
+        self.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
-    @on(Events.Session, [State.finished])
-    @on(Events.View, [State.showing])
+    @on(Events.Session, [State.finished, State.stopped])
     def hide(self, sender=None, **kwargs):
-        self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+        self.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+        self.widget.set_icon('tomate-idle')
 
-    def rounded_percent(self, percent):
-        '''
-        The icons show 5% steps, so we have to round.
-        '''
-        return percent - percent % 5
+    def _get_first_icon_theme(self):
+        return self.config.get_icon_paths()[0]
 
-    def icon_name_for(self, percent):
-        return 'tomate-{0:02}'.format(self.rounded_percent(percent))
+    @staticmethod
+    def _icon_name_for(percent):
+        return 'tomate-{0:02}'.format(percent)
+
+    @staticmethod
+    def new_indicator_with_menu_and_icon_theme(menu, icon_theme_path):
+        indicator = AppIndicator3.Indicator.new(
+            'tomate',
+            'tomate-idle',
+            AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
+        )
+
+        indicator.set_menu(menu)
+        indicator.set_icon_theme_path(icon_theme_path)
+
+        return indicator
+
+    def _show_if_session_is_running(self):
+        if self.session.is_running():
+            self.show()
+
+        else:
+            self.hide()

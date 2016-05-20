@@ -1,12 +1,8 @@
 FROM eliostvs/tomate
 
-ENV PROJECT /code/
+RUN apt-get clean && apt-get update -qq && apt-get install -y gir1.2-appindicator3-0.1
 
-COPY ./ $PROJECT
-
-RUN apt-get update -qq && apt-get install -y gir1.2-appindicator3-0.1
-
-WORKDIR $PROJECT
+WORKDIR /code/
 
 ENTRYPOINT ["make"]
 

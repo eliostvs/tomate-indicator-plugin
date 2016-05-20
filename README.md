@@ -1,28 +1,36 @@
 Tomate Indicator Plugin
 =======================
 
-Tomate is a timer for the Pomodoro Techinique. 
-This plugin shows the progress of the session in the indicator area.
+Tomate is a timer for the Pomodoro Techinique.
+This plugin shows the timer countdown in the indicator area.
 
 Installation
 ------------
 
 Go to [this page](https://github.com/eliostvs/tomate-gtk) for instructions.
 
-
 Bugs and Suggetions
 -------------------
 
 Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomate-indicator-plugin/issues).
 
-Changelog
----------
+Change Logs
+-----------
 
-### v0.5.0
+### 0.7.0
+- Fix indicator initial icon name
+
+### 0.6.0
+
+- Using menu from tomate-gtk
+- Using py.test
+- Fix gtk warnings
+
+### 0.5.0
 
 - Remove linux package metadata
 
-### v0.4.0
+### 0.4.0
 
 - Using the new event system
 
