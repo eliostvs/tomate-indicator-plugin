@@ -17,6 +17,9 @@ Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomat
 Change Logs
 -----------
 
+### 0.7.0
+- Fix indicator initial icon name
+
 ### 0.6.0
 
 - Using menu from tomate-gtk
