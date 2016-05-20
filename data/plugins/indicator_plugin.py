@@ -84,7 +84,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def new_indicator_with_menu_and_icon_theme(menu, icon_theme_path):
         indicator = AppIndicator3.Indicator.new(
             'tomate',
-            'tomate-indicator',
+            'tomate-idle',
             AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
         )
 
