@@ -17,7 +17,12 @@ Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomat
 Change Logs
 -----------
 
+### 0.8.0
+
+- Using new event api
+
 ### 0.7.0
+
 - Fix indicator initial icon name
 
 ### 0.6.0
