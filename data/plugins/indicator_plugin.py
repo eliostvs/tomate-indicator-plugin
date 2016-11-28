@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-import logging
-
 import gi
+import logging
 
 gi.require_version('AppIndicator3', '0.1')
 
