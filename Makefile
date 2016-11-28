@@ -18,7 +18,7 @@ clean:
 	find . \( -iname "*.pyc" -o -iname "__pycache__" \) -print0 | xargs -0 rm -rf
 
 test: clean
-	$(PYTHONPATH) $(DEBUG) py.test test.py --cov-report term-missing --cov=$(PLUGIN_PATH) -v --flake8
+	$(PYTHONPATH) $(DEBUG) py.test tests.py --cov=$(PLUGIN_PATH)
 
 lint:
 	flake8
@@ -30,7 +30,7 @@ docker-build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
 
 docker-test:
-	docker run --rm -v $(PACKAGE_ROOT):/code $(DOCKER_IMAGE_NAME)
+	docker run --rm -v $(PACKAGE_ROOT):/code $(DOCKER_IMAGE_NAME) test
 
 docker-all: docker-clean docker-build docker-test
 
