@@ -50,7 +50,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
         self.hide()
 
     @suppress_errors
-    @on(Events['Timer'], [State.changed])
+    @on(Events.Timer, [State.changed])
     def update_icon(self, sender=None, **kwargs):
         percent = int(kwargs.get('time_ratio', 0) * 100)
 
@@ -61,12 +61,12 @@ class IndicatorPlugin(tomate.plugin.Plugin):
             logger.debug('set icon %s', icon_name)
 
     @suppress_errors
-    @on(Events['Session'], [State.started])
+    @on(Events.Session, [State.started])
     def show(self, sender=None, **kwargs):
         self.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
-    @on(Events['Session'], [State.finished, State.stopped])
+    @on(Events.Session, [State.finished, State.stopped])
     def hide(self, sender=None, **kwargs):
         self.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
         self.widget.set_icon('tomate-idle')
