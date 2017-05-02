@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import gi
 import logging
+
+import gi
 
 gi.require_version('AppIndicator3', '0.1')
 
@@ -94,6 +95,5 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def _show_if_session_is_running(self):
         if self.session.is_running():
             self.show()
-
         else:
             self.hide()
