@@ -19,7 +19,7 @@ Change Logs
 
 ### 0.8.0
 
-- Python 3 onlly
+- Python 3 only
 
 ### 0.7.0
 
