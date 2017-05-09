@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 @implements(TrayIcon)
 class IndicatorPlugin(tomate.plugin.Plugin):
-
     @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
@@ -96,6 +95,5 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     def _show_if_session_is_running(self):
         if self.session.is_running():
             self.show()
-
         else:
             self.hide()
