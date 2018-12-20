@@ -1,20 +1,19 @@
-from __future__ import unicode_literals
-
 import pytest
 from gi.repository import AppIndicator3
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from tomate.constant import State
 from tomate.event import Events
 from tomate.graph import graph
 from tomate.view import TrayIcon
+from tomate.session import Session
 
 
 def setup_function(function):
     graph.providers.clear()
 
     graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
-    graph.register_instance('tomate.session', Mock())
+    graph.register_instance('tomate.session', Mock(Session))
     graph.register_instance('trayicon.menu', Mock())
 
     Events.Session.receivers.clear()
