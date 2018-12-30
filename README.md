@@ -14,8 +14,12 @@ Bugs and Suggestions
 
 Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomate-indicator-plugin/issues).
 
-Change Logs
------------
+Changelog
+---------
+
+### [Unreleased]
+
+- Using new session/task API
 
 ### 0.8.0
 
