@@ -1,12 +1,14 @@
+from unittest.mock import Mock, patch
+
 import pytest
 from gi.repository import AppIndicator3
-from unittest.mock import Mock, patch
 
 from tomate.constant import State
 from tomate.event import Events
 from tomate.graph import graph
-from tomate.view import TrayIcon
 from tomate.session import Session
+from tomate.timer import TimerPayload
+from tomate.view import TrayIcon
 
 
 def setup_function(function):
@@ -18,144 +20,129 @@ def setup_function(function):
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()
-    Events.View.receivers.clear()
 
 
-@pytest.fixture()
+@pytest.fixture
 def session():
     return graph.get('tomate.session')
 
 
-@pytest.fixture()
+@pytest.fixture
 @patch('indicator_plugin.AppIndicator3.Indicator')
-def plugin(Indicator):
+def plugin(indicator):
     from indicator_plugin import IndicatorPlugin
 
     return IndicatorPlugin()
 
 
-def method_called(result):
-    return result[0][0]
+def test_should_update_indicator_icon_when_timer_changes(plugin):
+    # given
+    plugin.activate()
+    payload = TimerPayload(time_left=1, duration=10)
 
+    # when
+    Events.Timer.send(State.changed, payload=payload)
 
-def test_should_update_indicator_icon_when_plugin_update(plugin):
-    plugin.update_icon(time_ratio=0.5)
-    plugin.widget.set_icon.assert_called_with('tomate-50')
-
-    plugin.update_icon(time_ratio=0.9)
+    # then
     plugin.widget.set_icon.assert_called_with('tomate-90')
 
 
-def test_should_change_indicator_status_active_when_plugin_shows(plugin):
-    plugin.show()
+def test_should_show_widget_when_session_starts(plugin):
+    # given
+    plugin.activate()
+    plugin.widget.reset_mock()
 
+    # when
+    Events.Session.send(State.started)
+
+    # then
     plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
 
 
-def test_should_change_indicator_passive_when_plugin_hid(plugin):
-    plugin.hide()
+def test_should_hide_widget_when_session_ends(plugin):
+    for event_type in [State.finished, State.stopped]:
+        # given
+        plugin.activate()
+        plugin.widget.reset_mock()
 
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+        # when
+        Events.Session.send(event_type)
 
-
-def test_should_register_plugin_when_activate(plugin):
-    plugin.activate()
-
-    assert TrayIcon in graph.providers.keys()
-    assert graph.get(TrayIcon) == plugin
-
-
-def test_should_unregister_when_plugin_deactivate(plugin):
-    graph.register_instance(TrayIcon, plugin)
-
-    plugin.deactivate()
-
-    assert TrayIcon not in graph.providers.keys()
+        # then
+        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+        plugin.widget.set_icon("tomate-idle")
 
 
-def test_should_show_indicator_when_plugin_activate(plugin):
-    plugin.activate()
+class TestActivePlugin:
+    def setup_method(self, method):
+        setup_function(method)
 
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+    def test_should_register_tray_icon_provider(self, plugin):
+        # when
+        plugin.activate()
 
+        # then
+        assert TrayIcon in graph.providers.keys()
+        assert graph.get(TrayIcon) == plugin
 
-def test_should_hide_indicator_when_plugin_deactivate(plugin):
-    graph.register_instance(TrayIcon, plugin)
+    def test_should_show_indicator_when_session_is_running(self, plugin, session):
+        # given
+        session.is_running.return_value = True
 
-    plugin.deactivate()
+        # when
+        plugin.activate()
 
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+        # then
+        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
 
+    @patch('indicator_plugin.connect_events')
+    def test_should_connect_menu_events(self, connect_events, plugin):
+        plugin.activate()
 
-def test_should_call_update_icon_when_time_changed(plugin):
-    plugin.activate()
+        connect_events.assert_called_once_with(plugin.menu)
 
-    result = Events.Timer.send(State.changed)
+    def test_should_hide_indicator_when_session_is_not_running(self, plugin, session):
+        # given
+        session.is_running.return_value = False
 
-    assert len(result) == 1
-    assert plugin.update_icon == method_called(result)
+        # when
+        plugin.activate()
 
-
-def test_should_call_show_when_session_started(plugin):
-    plugin.activate()
-
-    result = Events.Session.send(State.started)
-
-    assert len(result) == 1
-    assert plugin.show == method_called(result)
-
-
-def test_should_call_hide_when_timer_finished(plugin):
-    plugin.activate()
-
-    result = Events.Session.send(State.finished)
-
-    assert len(result) == 1
-    assert plugin.hide == method_called(result)
+        # when
+        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
 
-def test_should_call_hide_when_timer_stopped(plugin):
-    plugin.activate()
+class TestDeactivatePlugin:
+    def setup_method(self, method):
+        setup_function(method)
 
-    result = Events.Session.send(State.stopped)
+    def test_should_unregister_tray_icon(self, plugin):
+        # given
+        graph.register_instance(TrayIcon, plugin)
 
-    assert len(result) == 1
-    assert plugin.hide == method_called(result)
+        # when
+        plugin.deactivate()
 
+        # then
+        assert TrayIcon not in graph.providers.keys()
 
-def test_should_set_idle_icon_when_plugin_hide(plugin):
-    plugin.hide()
+    def test_should_hide_indicator(self, plugin):
+        # given
+        graph.register_instance(TrayIcon, plugin)
 
-    plugin.widget.set_icon.assert_called_once_with('tomate-idle')
+        # when
+        plugin.deactivate()
 
+        # then
+        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
 
-@patch('indicator_plugin.connect_events')
-def test_should_connect_menu_events_when_plugin_activate(connect_events, plugin):
-    plugin.activate()
+    @patch('indicator_plugin.disconnect_events')
+    def test_should_disconnect_menu_events(self, disconnect_events, plugin):
+        # given
+        plugin.activate()
 
-    connect_events.assert_called_once_with(plugin.menu)
+        # when
+        plugin.deactivate()
 
-
-@patch('indicator_plugin.disconnect_events')
-def test_should_disconnect_menu_events_when_plugin_deactivate(disconnect_events, plugin):
-    plugin.activate()
-
-    plugin.deactivate()
-
-    disconnect_events.assert_called_once_with(plugin.menu)
-
-
-def test_should_hide_indicator_if_session_is_not_running(session, plugin):
-    session.is_running.return_value = False
-
-    plugin.activate()
-
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
-
-
-def test_should_show_indicator_if_session_is_running(session, plugin):
-    session.is_running.return_value = True
-
-    plugin.activate()
-
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+        # then
+        disconnect_events.assert_called_once_with(plugin.menu)
