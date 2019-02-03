@@ -14,8 +14,12 @@ Bugs and Suggestions
 
 Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomate-indicator-plugin/issues).
 
-Change Logs
------------
+Changelog
+---------
+
+### 0.9.0
+
+- The timer, session and settings now emit a payload object instead of a dictionary
 
 ### 0.8.0
 
