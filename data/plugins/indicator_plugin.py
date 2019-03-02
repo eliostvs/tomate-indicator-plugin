@@ -79,7 +79,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
             "tomate", "tomate-idle", AppIndicator3.IndicatorCategory.APPLICATION_STATUS
         )
 
-        indicator.set_menu(self.menu)
+        indicator.set_menu(self.menu.widget)
         indicator.set_icon_theme_path(self._get_first_icon_theme())
 
         return indicator
