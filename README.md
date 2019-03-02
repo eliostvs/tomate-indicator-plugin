@@ -17,6 +17,12 @@ Bugs and suggestions should be reported [here](https://github.com/eliostvs/tomat
 Changelog
 ---------
 
+### 0.9.1
+
+#### Fixed
+
+- TrayIcon menu connection
+
 ### 0.9.0
 
 - The timer, session and settings now emit a payload object instead of a dictionary

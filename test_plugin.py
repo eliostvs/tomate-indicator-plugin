@@ -1,5 +1,3 @@
-from unittest.mock import Mock, patch
-
 import pytest
 from gi.repository import AppIndicator3
 
@@ -11,138 +9,169 @@ from tomate.timer import TimerPayload
 from tomate.view import TrayIcon
 
 
-def setup_function(function):
+@pytest.fixture
+def mock_menu(mocker):
+    return mocker.Mock(widget="widget")
+
+
+@pytest.fixture
+def mock_session(mocker):
+    return mocker.Mock(Session)
+
+
+@pytest.fixture
+def mock_config(mocker):
+    return mocker.Mock(**{"get_icon_paths.return_value": ["get-icon-path"]})
+
+
+@pytest.fixture
+def subject(mocker, mock_menu, mock_session, mock_config):
+    mocker.patch("indicator_plugin.AppIndicator3.Indicator")
+
+    from indicator_plugin import IndicatorPlugin
+
     graph.providers.clear()
 
-    graph.register_instance('tomate.config', Mock(**{'get_icon_paths.return_value': ['']}))
-    graph.register_instance('tomate.session', Mock(Session))
-    graph.register_instance('trayicon.menu', Mock())
+    graph.register_instance("tomate.config", mock_config)
+    graph.register_instance("tomate.session", mock_session)
+    graph.register_instance("trayicon.menu", mock_menu)
 
     Events.Session.receivers.clear()
     Events.Timer.receivers.clear()
 
-
-@pytest.fixture
-def session():
-    return graph.get('tomate.session')
-
-
-@pytest.fixture
-@patch('indicator_plugin.AppIndicator3.Indicator')
-def plugin(indicator):
-    from indicator_plugin import IndicatorPlugin
-
     return IndicatorPlugin()
 
 
-def test_should_update_indicator_icon_when_timer_changes(plugin):
+def test_indicator_creation(subject, mock_menu, mock_config):
+    from indicator_plugin import AppIndicator3
+
+    AppIndicator3.Indicator.new.assert_called_once_with(
+        "tomate", "tomate-idle", AppIndicator3.IndicatorCategory.APPLICATION_STATUS
+    )
+
+    AppIndicator3.Indicator.new.return_value.set_menu.assert_called_once_with(
+        mock_menu.widget
+    )
+    AppIndicator3.Indicator.new.return_value.set_icon_theme_path.assert_called_once_with(
+        "get-icon-path"
+    )
+
+
+def test_should_update_indicator_icon_when_timer_changes(subject):
     # given
-    plugin.activate()
+    subject.activate()
     payload = TimerPayload(time_left=1, duration=10)
 
     # when
     Events.Timer.send(State.changed, payload=payload)
 
     # then
-    plugin.widget.set_icon.assert_called_with('tomate-90')
+    subject.widget.set_icon.assert_called_with("tomate-90")
 
 
-def test_should_show_widget_when_session_starts(plugin):
+def test_should_show_widget_when_session_starts(subject):
     # given
-    plugin.activate()
-    plugin.widget.reset_mock()
+    subject.activate()
+    subject.widget.reset_mock()
 
     # when
     Events.Session.send(State.started)
 
     # then
-    plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+    subject.widget.set_status.assert_called_once_with(
+        AppIndicator3.IndicatorStatus.ACTIVE
+    )
 
 
-def test_should_hide_widget_when_session_ends(plugin):
+def test_should_hide_widget_when_session_ends(subject):
     for event_type in [State.finished, State.stopped]:
         # given
-        plugin.activate()
-        plugin.widget.reset_mock()
+        subject.activate()
+        subject.widget.reset_mock()
 
         # when
         Events.Session.send(event_type)
 
         # then
-        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
-        plugin.widget.set_icon("tomate-idle")
+        subject.widget.set_status.assert_called_once_with(
+            AppIndicator3.IndicatorStatus.PASSIVE
+        )
+        subject.widget.set_icon("tomate-idle")
 
 
 class TestActivePlugin:
-    def setup_method(self, method):
-        setup_function(method)
-
-    def test_should_register_tray_icon_provider(self, plugin):
+    def test_should_register_tray_icon_provider(self, subject):
         # when
-        plugin.activate()
+        subject.activate()
 
         # then
         assert TrayIcon in graph.providers.keys()
-        assert graph.get(TrayIcon) == plugin
+        assert graph.get(TrayIcon) == subject
 
-    def test_should_show_indicator_when_session_is_running(self, plugin, session):
+    def test_should_show_indicator_when_session_is_running(self, subject, mock_session):
         # given
-        session.is_running.return_value = True
+        mock_session.is_running.return_value = True
 
         # when
-        plugin.activate()
+        subject.activate()
 
         # then
-        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.ACTIVE)
+        subject.widget.set_status.assert_called_once_with(
+            AppIndicator3.IndicatorStatus.ACTIVE
+        )
 
-    @patch('indicator_plugin.connect_events')
-    def test_should_connect_menu_events(self, connect_events, plugin):
-        plugin.activate()
+    def test_should_connect_menu_events(self, subject, mocker):
+        connect_events = mocker.patch("indicator_plugin.connect_events")
 
-        connect_events.assert_called_once_with(plugin.menu)
+        subject.activate()
 
-    def test_should_hide_indicator_when_session_is_not_running(self, plugin, session):
+        connect_events.assert_called_once_with(subject.menu)
+
+    def test_should_hide_indicator_when_session_is_not_running(
+        self, subject, mock_session
+    ):
         # given
-        session.is_running.return_value = False
+        mock_session.is_running.return_value = False
 
         # when
-        plugin.activate()
+        subject.activate()
 
         # when
-        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+        subject.widget.set_status.assert_called_once_with(
+            AppIndicator3.IndicatorStatus.PASSIVE
+        )
 
 
 class TestDeactivatePlugin:
-    def setup_method(self, method):
-        setup_function(method)
-
-    def test_should_unregister_tray_icon(self, plugin):
+    def test_should_unregister_tray_icon(self, subject):
         # given
-        graph.register_instance(TrayIcon, plugin)
+        graph.register_instance(TrayIcon, subject)
 
         # when
-        plugin.deactivate()
+        subject.deactivate()
 
         # then
         assert TrayIcon not in graph.providers.keys()
 
-    def test_should_hide_indicator(self, plugin):
+    def test_should_hide_indicator(self, subject):
         # given
-        graph.register_instance(TrayIcon, plugin)
+        graph.register_instance(TrayIcon, subject)
 
         # when
-        plugin.deactivate()
+        subject.deactivate()
 
         # then
-        plugin.widget.set_status.assert_called_once_with(AppIndicator3.IndicatorStatus.PASSIVE)
+        subject.widget.set_status.assert_called_once_with(
+            AppIndicator3.IndicatorStatus.PASSIVE
+        )
 
-    @patch('indicator_plugin.disconnect_events')
-    def test_should_disconnect_menu_events(self, disconnect_events, plugin):
+    def test_should_disconnect_menu_events(self, mocker, subject):
         # given
-        plugin.activate()
+        disconnect_events = mocker.patch("indicator_plugin.disconnect_events")
+        subject.activate()
 
         # when
-        plugin.deactivate()
+        subject.deactivate()
 
         # then
-        disconnect_events.assert_called_once_with(plugin.menu)
+        disconnect_events.assert_called_once_with(subject.menu)
