@@ -4,22 +4,21 @@ import gi
 
 gi.require_version("AppIndicator3", "0.1")
 
-import tomate.plugin
 from gi.repository import AppIndicator3
-from tomate.constant import State
-from tomate.event import Events, on
-from tomate.graph import graph
-from tomate.plugin import connect_events, disconnect_events
-from tomate.utils import rounded_percent, suppress_errors
-from tomate.view import TrayIcon
-from tomate.timer import TimerPayload
 from wiring import implements
+
+from tomate.core import State
+from tomate.core.event import Events, on
+from tomate.core.graph import graph
+from tomate.core.plugin import Plugin, connect_events, disconnect_events, suppress_errors
+from tomate.core.timer import TimerPayload
+from tomate.ui.widgets import TrayIcon
 
 logger = logging.getLogger(__name__)
 
 
 @implements(TrayIcon)
-class IndicatorPlugin(tomate.plugin.Plugin):
+class IndicatorPlugin(Plugin):
     @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
@@ -51,13 +50,10 @@ class IndicatorPlugin(tomate.plugin.Plugin):
     @suppress_errors
     @on(Events.Timer, [State.changed])
     def update_icon(self, _, payload: TimerPayload):
-        percent = int(payload.ratio * 100)
+        icon_name = self._icon_name_for(payload.elapsed_percent)
+        self.widget.set_icon(icon_name)
 
-        if rounded_percent(percent) < 99:
-            icon_name = self._icon_name_for(rounded_percent(percent))
-            self.widget.set_icon(icon_name)
-
-            logger.debug("set icon %s", icon_name)
+        logger.debug("action=set_icon name=%s", icon_name)
 
     @suppress_errors
     @on(Events.Session, [State.started])
@@ -72,7 +68,7 @@ class IndicatorPlugin(tomate.plugin.Plugin):
 
     @staticmethod
     def _icon_name_for(percent):
-        return "tomate-{0:02}".format(percent)
+        return "tomate-{0:.0f}".format(percent)
 
     def _build_widget(self):
         indicator = AppIndicator3.Indicator.new(
