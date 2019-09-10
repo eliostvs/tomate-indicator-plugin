@@ -7,11 +7,11 @@ gi.require_version("AppIndicator3", "0.1")
 from gi.repository import AppIndicator3
 from wiring import implements
 
-from tomate.core import State
-from tomate.core.event import Events, on
-from tomate.core.graph import graph
-from tomate.core.plugin import Plugin, connect_events, disconnect_events, suppress_errors
-from tomate.core.timer import TimerPayload
+from tomate.pomodoro import State
+from tomate.pomodoro.event import Events, on
+from tomate.pomodoro.graph import graph
+from tomate.pomodoro.plugin import Plugin, connect_events, disconnect_events, suppress_errors
+from tomate.pomodoro.timer import TimerPayload
 from tomate.ui.widgets import TrayIcon
 
 logger = logging.getLogger(__name__)
