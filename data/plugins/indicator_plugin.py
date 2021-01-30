@@ -26,8 +26,7 @@ class IndicatorPlugin(Plugin):
         self.menu = graph.get("trayicon.menu")
         self.config = graph.get("tomate.config")
         self.session = graph.get("tomate.session")
-
-        self.widget = self._build_widget()
+        self.widget = self.create_widget()
 
     @suppress_errors
     def activate(self):
@@ -35,8 +34,13 @@ class IndicatorPlugin(Plugin):
 
         graph.register_instance(TrayIcon, self)
         connect_events(self.menu)
+        self.show_if_session_is_running()
 
-        self._show_if_session_is_running()
+    def show_if_session_is_running(self):
+        if self.session.is_running():
+            self.show()
+        else:
+            self.hide()
 
     @suppress_errors
     def deactivate(self):
@@ -50,7 +54,7 @@ class IndicatorPlugin(Plugin):
     @suppress_errors
     @on(Events.Timer, [State.changed])
     def update_icon(self, _, payload: TimerPayload):
-        icon_name = self._icon_name_for(payload.elapsed_percent)
+        icon_name = self.icon_name_for(payload.elapsed_percent)
         self.widget.set_icon(icon_name)
 
         logger.debug("action=set_icon name=%s", icon_name)
@@ -67,24 +71,17 @@ class IndicatorPlugin(Plugin):
         self.widget.set_icon("tomate-idle")
 
     @staticmethod
-    def _icon_name_for(percent):
+    def icon_name_for(percent):
         return "tomate-{0:.0f}".format(percent)
 
-    def _build_widget(self):
+    def create_widget(self):
         indicator = AppIndicator3.Indicator.new(
             "tomate", "tomate-idle", AppIndicator3.IndicatorCategory.APPLICATION_STATUS
         )
 
         indicator.set_menu(self.menu.widget)
-        indicator.set_icon_theme_path(self._get_first_icon_theme())
-
+        indicator.set_icon_theme_path(self.first_icon_theme_path())
         return indicator
 
-    def _get_first_icon_theme(self):
+    def first_icon_theme_path(self):
         return self.config.get_icon_paths()[0]
-
-    def _show_if_session_is_running(self):
-        if self.session.is_running():
-            self.show()
-        else:
-            self.hide()
