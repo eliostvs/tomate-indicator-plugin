@@ -77,6 +77,7 @@ class TestActivePlugin:
 
         assert TrayIcon in graph.providers.keys()
         assert graph.get(TrayIcon) == subject
+        assert subject.widget.get_category() is AppIndicator3.IndicatorCategory.APPLICATION_STATUS
 
     def test_should_show_indicator_when_session_is_running(self, subject, session):
         session.is_running.return_value = True
