@@ -7,7 +7,7 @@ from tomate.pomodoro.config import Config
 from tomate.pomodoro.event import Events
 from tomate.pomodoro.graph import graph
 from tomate.pomodoro.session import Session
-from tomate.pomodoro.timer import TimerPayload
+from tomate.pomodoro.timer import Payload as TimerPayload
 from tomate.ui.widgets import TrayIcon
 
 
