@@ -1,5 +1,5 @@
 import pytest
-from blinker import Namespace
+from blinker import signal
 from gi.repository import AppIndicator3, Gtk
 
 from tomate.pomodoro import State
@@ -9,11 +9,6 @@ from tomate.pomodoro.graph import graph
 from tomate.pomodoro.session import Session
 from tomate.pomodoro.timer import Payload as TimerPayload
 from tomate.ui.widgets import TrayIcon
-
-
-@pytest.fixture()
-def dispatcher():
-    return Namespace().signal("dispatcher")
 
 
 @pytest.fixture
@@ -27,12 +22,12 @@ def session(mocker):
 
 
 @pytest.fixture
-def subject(menu, session, dispatcher):
+def subject(menu, session):
     from indicator_plugin import IndicatorPlugin
 
     graph.providers.clear()
 
-    graph.register_instance("tomate.config", Config(dispatcher))
+    graph.register_instance("tomate.config", Config(signal("dispatcher")))
     graph.register_instance("tomate.session", session)
     graph.register_instance("trayicon.menu", menu)
 
