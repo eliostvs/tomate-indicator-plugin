@@ -38,12 +38,36 @@ def subject(bus, menu, session):
     return indicator_plugin.IndicatorPlugin()
 
 
-def test_change_icon_when_timer_change(bus, subject):
+@pytest.mark.parametrize(
+    "time_left,duration,icon_name",
+    [
+        (100, 100, "tomate-00"),
+        (95, 100, "tomate-05"),
+        (90, 100, "tomate-10"),
+        (85, 100, "tomate-15"),
+        (80, 100, "tomate-20"),
+        (75, 100, "tomate-25"),
+        (70, 100, "tomate-30"),
+        (65, 100, "tomate-35"),
+        (60, 100, "tomate-40"),
+        (55, 100, "tomate-45"),
+        (50, 100, "tomate-50"),
+        (45, 100, "tomate-55"),
+        (40, 100, "tomate-60"),
+        (35, 100, "tomate-65"),
+        (30, 100, "tomate-70"),
+        (25, 100, "tomate-75"),
+        (20, 100, "tomate-80"),
+        (10, 100, "tomate-90"),
+        (5, 100, "tomate-95"),
+    ],
+)
+def test_change_icon_when_timer_change(time_left, duration, icon_name, bus, subject):
     subject.activate()
 
-    bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=1, duration=10))
+    bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=time_left, duration=duration))
 
-    assert subject.widget.get_icon() == "tomate-90"
+    assert subject.widget.get_icon() == icon_name
 
 
 def test_show_when_session_start(bus, subject):

@@ -22,7 +22,6 @@ class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
     def __init__(self):
         super(IndicatorPlugin, self).__init__()
-
         self.menu = graph.get("tomate.ui.systray.menu")
         self.config = graph.get("tomate.config")
         self.session = graph.get("tomate.session")
@@ -32,12 +31,9 @@ class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
     def activate(self):
         super(IndicatorPlugin, self).activate()
-
         graph.register_instance(Systray, self)
         self.menu.connect(self.bus)
-        self.show_if_session_is_running()
 
-    def show_if_session_is_running(self):
         if self.session.is_running():
             self.show()
         else:
@@ -46,7 +42,6 @@ class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
-
         graph.unregister_provider(Systray)
         self.menu.disconnect(self.bus)
         self.hide()
@@ -73,7 +68,7 @@ class IndicatorPlugin(plugin.Plugin):
 
     @staticmethod
     def icon_name_for(percent):
-        return "tomate-{0:.0f}".format(percent)
+        return "tomate-{:02.0f}".format(percent)
 
     def create_widget(self):
         indicator = AppIndicator3.Indicator.new(
