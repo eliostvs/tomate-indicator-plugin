@@ -6,14 +6,14 @@ MAKEFLAGS     += --no-builtin-rules
 MAKEFLAGS     += --warn-undefined-variables
 SHELL         = bash
 
-DEBUG        = TOMATE_DEBUG=1
-DOCKER_IMAGE = eliostvs/tomate
-OBS_API_URL  = https://api.opensuse.org:443/trigger/runservice
-PLUGINPATH   = $(CURDIR)/data/plugins
-PYTHONPATH   = PYTHONPATH=$(CURDIR)/tomate:$(PLUGINPATH)
-VERSION      = `cat .bumpversion.cfg | grep current_version | awk '{print $$3}'`
-WORKDIR      = /code
-XDGPATH     = XDG_DATA_HOME=$(CURDIR)/data
+DEBUG         = TOMATE_DEBUG=1
+DOCKER_IMAGE  = eliostvs/tomate
+OBS_API_URL   = https://api.opensuse.org:443/trigger/runservice
+PLUGINPATH    = $(CURDIR)/data/plugins
+PYTHONPATH    = PYTHONPATH=$(CURDIR)/tomate:$(PLUGINPATH)
+VERSION       = `cat .bumpversion.cfg | grep current_version | awk '{print $$3}'`
+WORKDIR       = /code
+XDGPATH       = XDG_DATA_HOME=$(CURDIR)/data
 
 ifeq ($(origin .RECIPEPREFIX), undefined)
 	$(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later)
