@@ -34,6 +34,7 @@ def subject(bus, menu, session):
     graph.register_instance("tomate.ui.systray.menu", menu)
 
     import indicator_plugin
+
     return indicator_plugin.IndicatorPlugin()
 
 
