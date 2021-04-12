@@ -1,21 +1,16 @@
 import pytest
-from blinker import NamedSignal
 from gi.repository import AppIndicator3, Gtk
 
-from tomate.pomodoro.config import Config
-from tomate.pomodoro.event import Events
-from tomate.pomodoro.graph import graph
-from tomate.pomodoro.session import Session
-from tomate.pomodoro.timer import Payload as TimerPayload
+from tomate.pomodoro import Bus, Config, Events, Session, TimerPayload, graph
 from tomate.ui import Systray, SystrayMenu
 
 
 @pytest.fixture
-def bus():
-    return NamedSignal("Test")
+def bus() -> Bus:
+    return Bus()
 
 
-@pytest.fixture()
+@pytest.fixture
 def menu(mocker):
     return mocker.Mock(spec=SystrayMenu, widget=Gtk.Menu())
 
@@ -26,7 +21,7 @@ def session(mocker):
 
 
 @pytest.fixture
-def subject(bus, menu, session):
+def plugin(bus, menu, session):
     graph.providers.clear()
     graph.register_instance("tomate.bus", bus)
     graph.register_instance("tomate.config", Config(bus))
@@ -35,7 +30,9 @@ def subject(bus, menu, session):
 
     import indicator_plugin
 
-    return indicator_plugin.IndicatorPlugin()
+    instance = indicator_plugin.IndicatorPlugin()
+    instance.connect(bus)
+    return instance
 
 
 @pytest.mark.parametrize(
@@ -62,83 +59,79 @@ def subject(bus, menu, session):
         (5, 100, "tomate-95"),
     ],
 )
-def test_change_icon_when_timer_change(time_left, duration, icon_name, bus, subject):
-    subject.activate()
+def test_change_icon_when_timer_change(time_left, duration, icon_name, bus, plugin):
+    plugin.activate()
 
     bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=time_left, duration=duration))
 
-    assert subject.widget.get_icon() == icon_name
+    assert plugin.widget.get_icon() == icon_name
 
 
-def test_show_when_session_start(bus, subject):
-    subject.activate()
-    subject.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+def test_show_when_session_start(bus, plugin):
+    plugin.activate()
+    plugin.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
 
     bus.send(Events.SESSION_START)
 
-    assert subject.widget.get_status() == AppIndicator3.IndicatorStatus.ACTIVE
+    assert plugin.widget.get_status() == AppIndicator3.IndicatorStatus.ACTIVE
 
 
 @pytest.mark.parametrize("event", [Events.SESSION_END, Events.SESSION_INTERRUPT])
-def test_hide_when_session_end(event, bus, subject):
-    subject.activate()
-    subject.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+def test_hide_when_session_end(event, bus, plugin):
+    plugin.activate()
+    plugin.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
-    bus.send(event)
+    bus.send(event, payload="")
 
-    assert subject.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
-    assert subject.widget.get_icon() == "tomate-idle"
+    assert plugin.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
+    assert plugin.widget.get_icon() == "tomate-idle"
 
 
 class TestActivePlugin:
-    def test_register_tray_provider(self, subject):
-        subject.activate()
+    def test_register_tray_provider(self, plugin):
+        plugin.activate()
 
         assert Systray in graph.providers.keys()
-        assert graph.get(Systray) == subject
-        assert subject.widget.get_category() is AppIndicator3.IndicatorCategory.APPLICATION_STATUS
+        assert graph.get(Systray) == plugin
+        assert plugin.widget.get_category() is AppIndicator3.IndicatorCategory.APPLICATION_STATUS
 
-    def test_show_when_session_is_running(self, session, subject):
+    def test_show_when_session_is_running(self, session, plugin):
         session.is_running.return_value = True
-        subject.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
+        plugin.widget.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
 
-        subject.activate()
+        plugin.activate()
 
-        assert subject.widget.get_status() == AppIndicator3.IndicatorStatus.ACTIVE
+        assert plugin.widget.get_status() == AppIndicator3.IndicatorStatus.ACTIVE
 
-    def test_hide_when_session_is_not_running(self, session, subject):
+    def test_hide_when_session_is_not_running(self, session, plugin):
         session.is_running.return_value = False
-        subject.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+        plugin.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
-        subject.activate()
+        plugin.activate()
 
-        assert subject.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
+        assert plugin.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
 
-    def test_connect_menu_events(self, bus, menu, subject):
-        subject.activate()
-
+    def test_connect_menu_events(self, bus, menu, plugin):
         menu.connect.assert_called_once_with(bus)
 
 
 class TestDeactivatePlugin:
-    def test_unregister_systray_provider(self, subject):
-        graph.register_instance(Systray, subject)
+    def test_unregister_systray_provider(self, plugin):
+        graph.register_instance(Systray, plugin)
 
-        subject.deactivate()
+        plugin.deactivate()
 
         assert Systray not in graph.providers.keys()
 
-    def test_hide_indicator(self, subject):
-        graph.register_instance(Systray, subject)
-        subject.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+    def test_hide_indicator(self, plugin):
+        graph.register_instance(Systray, plugin)
+        plugin.widget.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
-        subject.deactivate()
+        plugin.deactivate()
 
-        assert subject.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
+        assert plugin.widget.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
 
-    def test_disconnect_menu_events(self, bus, menu, subject):
-        graph.register_instance(Systray, subject)
-
-        subject.deactivate()
+    def test_disconnect_menu_events(self, bus, menu, plugin):
+        plugin.disconnect(bus)
 
         menu.disconnect.assert_called_once_with(bus)

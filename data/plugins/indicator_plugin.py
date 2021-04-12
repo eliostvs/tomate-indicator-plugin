@@ -5,19 +5,14 @@ import gi
 gi.require_version("AppIndicator3", "0.1")
 
 from gi.repository import AppIndicator3
-from wiring import implements
 
 import tomate.pomodoro.plugin as plugin
-from tomate.pomodoro.event import Events, on
-from tomate.pomodoro.graph import graph
-from tomate.pomodoro.plugin import suppress_errors
-from tomate.pomodoro.timer import Payload as TimerPayload
+from tomate.pomodoro import Events, on, Bus, graph, suppress_errors, TimerPayload
 from tomate.ui import Systray
 
 logger = logging.getLogger(__name__)
 
 
-@implements(Systray)
 class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
     def __init__(self):
@@ -25,14 +20,20 @@ class IndicatorPlugin(plugin.Plugin):
         self.menu = graph.get("tomate.ui.systray.menu")
         self.config = graph.get("tomate.config")
         self.session = graph.get("tomate.session")
-        self.bus = graph.get("tomate.bus")
         self.widget = self.create_widget()
+
+    def connect(self, bus: Bus) -> None:
+        super().connect(bus)
+        self.menu.connect(bus)
+
+    def disconnect(self, bus: Bus) -> None:
+        self.menu.disconnect(bus)
+        super().disconnect(bus)
 
     @suppress_errors
     def activate(self):
         super(IndicatorPlugin, self).activate()
         graph.register_instance(Systray, self)
-        self.menu.connect(self.bus)
 
         if self.session.is_running():
             self.show()
@@ -43,7 +44,6 @@ class IndicatorPlugin(plugin.Plugin):
     def deactivate(self):
         super(IndicatorPlugin, self).deactivate()
         graph.unregister_provider(Systray)
-        self.menu.disconnect(self.bus)
         self.hide()
 
     @suppress_errors
