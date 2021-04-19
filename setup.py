@@ -10,7 +10,7 @@ def find_xdg_data_files(syspath, relativepath, pkgname, data_files=[]):
             syspath = syspath.format(pkgname=pkgname)
 
             subpath = dirname.split(relativepath)[1]
-            if subpath.startswith('/'):
+            if subpath.startswith("/"):
                 subpath = subpath[1:]
 
             files = [os.path.join(dirname, f) for f in filenames]
@@ -30,22 +30,22 @@ def find_data_files(data_map, pkgname):
 
 
 DATA_FILES = [
-    ('share/{pkgname}/plugins', 'data/plugins'),
-    ('share/icons', 'data/icons'),
+    ("share/{pkgname}/plugins", "data/plugins"),
+    ("share/icons", "data/icons"),
 ]
 
 
 setup(
-    author='Elio Esteves Duarte',
-    author_email='elio.esteves.duarte@gmail.com',
-    description='Tomate plugin that shows the session progress in indicator.',
+    author="Elio Esteves Duarte",
+    author_email="elio.esteves.duarte@gmail.com",
+    description="Tomate plugin that shows the session progress in indicator.",
     include_package_data=True,
-    keywords='pomodoro,tomate',
-    license='GPL-3',
-    long_description=open('README.md').read(),
-    name='tomate-indicator-plugin',
-    data_files=find_data_files(DATA_FILES, 'tomate'),
-    url='https://github.com/eliostvs/tomate-indicator-plugin',
-    version='0.9.1',
+    keywords="pomodoro,tomate",
+    license="GPL-3",
+    long_description=open("README.md").read(),
+    name="tomate-indicator-plugin",
+    data_files=find_data_files(DATA_FILES, "tomate"),
+    url="https://github.com/eliostvs/tomate-indicator-plugin",
+    version="0.10.0",
     zip_safe=False,
 )
