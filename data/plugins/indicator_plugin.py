@@ -49,20 +49,20 @@ class IndicatorPlugin(plugin.Plugin):
 
     @suppress_errors
     @on(Events.TIMER_UPDATE)
-    def update_icon(self, _, payload: TimerPayload):
+    def update_icon(self, payload: TimerPayload):
         icon_name = self.icon_name_for(payload.elapsed_percent)
         self.indicator.set_properties(icon_name=icon_name)
         logger.debug("action=set_icon name=%s", icon_name)
 
     @suppress_errors
     @on(Events.SESSION_START)
-    def show(self, *_, **__):
+    def show(self, **__):
         logger.debug("action=show")
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
     @on(Events.SESSION_END, Events.SESSION_INTERRUPT)
-    def hide(self, *_, **__):
+    def hide(self, **__):
         logger.debug("action=hide")
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
         self.indicator.set_properties(icon_name="tomate-idle")
