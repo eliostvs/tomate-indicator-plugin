@@ -13,6 +13,7 @@ from tomate.ui import Systray
 
 logger = logging.getLogger(__name__)
 
+import functools
 
 class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
@@ -51,6 +52,12 @@ class IndicatorPlugin(plugin.Plugin):
     @on(Events.TIMER_UPDATE)
     def update_icon(self, payload: TimerPayload):
         icon_name = self.icon_name_for(payload.elapsed_percent)
+        self._update_icon(icon_name)
+        logger.debug("action=update_icon pct=%f", payload.elapsed_percent)
+
+    # LRU_cache size of one means only new icon names will result in an indicator icon update.
+    @functools.lru_cache(maxsize=1)
+    def _update_icon(self, icon_name: str):
         self.indicator.set_properties(icon_name=icon_name)
         logger.debug("action=set_icon name=%s", icon_name)
 
