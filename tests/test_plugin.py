@@ -72,7 +72,17 @@ def test_change_icon_when_timer_change(time_left, duration, icon_name, bus, plug
 
     bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=time_left, duration=duration))
 
-    assert plugin.indicator.props.icon_name == icon_name
+    assert plugin.indicator.get_icon() == icon_name
+
+
+def test_do_not_set_the_same_icon(bus, plugin, mocker):
+    plugin.activate()
+
+    with mocker.patch.object(plugin.indicator, "set_icon", wraps=plugin.indicator.set_icon):
+        bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=90, duration=1000))
+        bus.send(Events.TIMER_UPDATE, payload=TimerPayload(time_left=100, duration=1000))
+
+        plugin.indicator.set_icon.assert_called_once()
 
 
 def test_show_when_session_start(bus, plugin):
@@ -92,7 +102,7 @@ def test_hide_when_session_end(event, bus, plugin):
     bus.send(event, payload="")
 
     assert plugin.indicator.get_status() == AppIndicator3.IndicatorStatus.PASSIVE
-    assert plugin.indicator.props.icon_name == "tomate-idle"
+    assert plugin.indicator.get_icon() == "tomate-idle"
 
 
 class TestActivePlugin:

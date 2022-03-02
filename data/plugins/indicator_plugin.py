@@ -25,6 +25,7 @@ class IndicatorPlugin(plugin.Plugin):
 
     def configure(self, bus: Bus, graph: Graph) -> None:
         super().configure(bus, graph)
+
         self.menu = graph.get("tomate.ui.systray.menu")
         self.config = graph.get("tomate.config")
         self.session = graph.get("tomate.session")
@@ -32,7 +33,9 @@ class IndicatorPlugin(plugin.Plugin):
 
     @suppress_errors
     def activate(self):
+        logger.debug("action=active")
         super().activate()
+
         self.menu.connect(self.bus)
         self.graph.register_instance(Systray, self)
         if self.session.is_running():
@@ -42,7 +45,9 @@ class IndicatorPlugin(plugin.Plugin):
 
     @suppress_errors
     def deactivate(self):
+        logger.debug("action=deactivate")
         super().deactivate()
+
         self.menu.disconnect(self.bus)
         self.graph.unregister_provider(Systray)
         self.hide()
@@ -50,25 +55,29 @@ class IndicatorPlugin(plugin.Plugin):
     @suppress_errors
     @on(Events.TIMER_UPDATE)
     def update_icon(self, payload: TimerPayload):
-        icon_name = self.icon_name_for(payload.elapsed_percent)
-        self.indicator.set_properties(icon_name=icon_name)
-        logger.debug("action=set_icon name=%s", icon_name)
+        logger.debug("action=update-icon payload=%s", payload)
+
+        icon_name = self.icon_name(payload.elapsed_percent)
+        if icon_name != self.indicator.get_icon():
+            self.indicator.set_icon(icon_name)
 
     @suppress_errors
     @on(Events.SESSION_START)
     def show(self, **__):
         logger.debug("action=show")
+
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     @suppress_errors
     @on(Events.SESSION_END, Events.SESSION_INTERRUPT)
     def hide(self, **__):
         logger.debug("action=hide")
+
         self.indicator.set_status(AppIndicator3.IndicatorStatus.PASSIVE)
-        self.indicator.set_properties(icon_name="tomate-idle")
+        self.indicator.set_icon("tomate-idle")
 
     @staticmethod
-    def icon_name_for(percent):
+    def icon_name(percent):
         return "tomate-{:02.0f}".format(percent)
 
     def create_widget(self):
@@ -76,7 +85,7 @@ class IndicatorPlugin(plugin.Plugin):
             "tomate", "tomate-idle", AppIndicator3.IndicatorCategory.APPLICATION_STATUS
         )
 
-        indicator.set_properties(icon_theme_path=self.first_icon_theme_path())
+        indicator.set_icon_theme_path(self.first_icon_theme_path())
         indicator.set_menu(self.menu.widget)
         return indicator
 

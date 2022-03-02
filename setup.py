@@ -46,6 +46,6 @@ setup(
     name="tomate-indicator-plugin",
     data_files=find_data_files(DATA_FILES, "tomate"),
     url="https://github.com/eliostvs/tomate-indicator-plugin",
-    version="0.11.0",
+    version="0.12.0",
     zip_safe=False,
 )
