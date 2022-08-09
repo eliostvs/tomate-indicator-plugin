@@ -48,4 +48,5 @@ setup(
     url="https://github.com/eliostvs/tomate-indicator-plugin",
     version="0.12.0",
     zip_safe=False,
+    py_modules=[],
 )
